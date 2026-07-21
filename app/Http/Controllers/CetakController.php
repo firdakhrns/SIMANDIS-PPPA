@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agenda;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Barrier\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CetakController extends Controller
 {
