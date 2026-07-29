@@ -9,8 +9,8 @@ class Agenda extends Model
 {
     protected $fillable = [
         'no_surat', 'tgl_surat', 'tgl_diterima', 'no_agenda', 'sifat_surat',
-        'surat_dari', 'perihal', 'bidang_id', 'status_disposisi',
-        'diteruskan_kepada', 'instruksi_pimpinan', 'catatan_kadis'
+        'surat_dari', 'perihal', 'file_pdf', 'status_pelaksanaan','bidang_id', 
+        'status_disposisi', 'diteruskan_kepada', 'instruksi_pimpinan', 'catatan_kadis'
     ];
 
     protected $casts = [

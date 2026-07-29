@@ -11,12 +11,14 @@ return new class extends Migration
         Schema::create('agendas', function (Blueprint $table) {
             $table->id();
             $table->string('no_surat');
-            $table->date('tgl_surat');
+            $table->dateTime('tgl_surat');
             $table->date('tgl_diterima');
             $table->string('no_agenda');
             $table->enum('sifat_surat', ['Sangat Segera', 'Segera', 'Rahasia']);
             $table->string('surat_dari');
             $table->text('perihal');
+            $table->string('file_pdf')->nullable();
+            $table->enum('status_pelaksanaan', ['belum', 'terlaksana'])->default('belum');
             
             $table->integer('bidang_id'); 
             

@@ -43,4 +43,25 @@ class CetakController extends Controller
         $pdf = Pdf::loadView('cetak.rekap-bulanan', compact('agendas', 'bulan', 'tahun'));
         return $pdf->stream('Rekap_Agenda_' . $bulan . '_' . $tahun . '.pdf');
     }
+
+    public function pdfKalender(Request $request)
+    {
+        $bulan = $request->query('bulan', date('m'));
+        $tahun = $request->query('tahun', date('Y'));
+
+        // Ambil data agenda bulan & tahun terkait, lalu dikelompokkan berdasarkan tanggal (1-31)
+        $agendas = Agenda::with('realisasi')
+            ->whereMonth('tgl_surat', $bulan)
+            ->whereYear('tgl_surat', $tahun)
+            ->get()
+            ->groupBy(function($val) {
+                return \Carbon\Carbon::parse($val->tgl_surat)->format('j'); // Group angka tanggal 1, 2, 3...
+            });
+
+        // Set kertas Landscape A4 agar grid kalender muat dan rapi
+        $pdf = Pdf::loadView('cetak.kalender-monitoring', compact('agendas', 'bulan', 'tahun'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Rekap_Kalender_Monitoring_' . $bulan . '_' . $tahun . '.pdf');
+    }
 }

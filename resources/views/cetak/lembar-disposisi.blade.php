@@ -9,18 +9,16 @@
             margin: 1.2cm;
         }
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13px;
             color: #000;
             line-height: 1.3;
         }
-        /* Outer Border Frame */
         .wrapper {
             border: 2px solid #000;
             padding: 0;
             margin: 0;
         }
-        /* Kop Header Table */
         .kop-table {
             width: 100%;
             border-collapse: collapse;
@@ -32,7 +30,7 @@
             vertical-align: middle;
         }
         .logo {
-            width: 65px;
+            width: 70px;
             height: auto;
         }
         .kop-text {
@@ -41,25 +39,23 @@
         }
         .kop-text h3 {
             margin: 0;
-            font-size: 13px;
+            font-size: 18px;
             letter-spacing: 0.5px;
         }
         .kop-text h2 {
-            margin: 3px 0 0 0;
-            font-size: 13px;
+            margin: 0 0 0;
+            font-size: 18px;
             letter-spacing: 0.5px;
         }
-        /* Title Box */
         .title-box {
             text-align: center;
             font-weight: bold;
-            font-size: 14px;
-            letter-spacing: 2px;
+            font-size: 16px;
+            letter-spacing: 1px;
             padding: 8px 0;
             border-bottom: 1.5px solid #000;
             background-color: #fcfcfc;
         }
-        /* Main Content Grid Table */
         .content-table {
             width: 100%;
             border-collapse: collapse;
@@ -74,18 +70,18 @@
         .no-border-top { border-top: none !important; }
         .no-border-bottom { border-bottom: none !important; }
 
-        /* Checkbox Styling */
         .checkbox-box {
             display: inline-block;
             width: 11px;
             height: 11px;
             border: 1.2px solid #000;
             text-align: center;
-            line-height: 10px;
-            font-size: 10px;
+            line-height: 5px;
+            font-size: 16px;
             font-weight: bold;
             margin-right: 5px;
             vertical-align: middle;
+            font-family: 'DejaVu Sans', sans-serif !important;
         }
         .checkbox-label {
             vertical-align: middle;
@@ -104,11 +100,9 @@
 <body>
 
     <div class="wrapper">
-        <!-- 📌 KOP SURAT BERDAMPINGAN DENGAN LOGO PEMKO -->
         <table class="kop-table">
             <tr>
                 <td style="width: 80px; text-align: center;">
-                    <!-- Gambar diambil langsung dari folder public/pemko.png -->
                     <img src="{{ public_path('pemko.png') }}" class="logo" alt="Logo Pemko">
                 </td>
                 <td class="kop-text" style="padding-right: 80px;">
@@ -118,22 +112,19 @@
             </tr>
         </table>
 
-        <!-- 📌 JUDUL DOKUMEN -->
         <div class="title-box">
             LEMBAR DISPOSISI
         </div>
 
-        <!-- 📌 TABEL FORMULIR DISPOSISI -->
         <table class="content-table">
-            <!-- BARIS 1: INFORMASI SURAT & AGENDANYA -->
             <tr>
                 <td style="width: 50%; height: 75px;" class="no-border-left">
                     <strong>Surat Dari :</strong> {{ $agenda->surat_dari }}<br><br>
                     <strong>No. Surat :</strong> {{ $agenda->no_surat }}<br>
-                    <strong>Tgl. Surat :</strong> {{ \Carbon\Carbon::parse($agenda->tgl_surat)->translatedFormat('d F Y') }}
+                    <strong>Tgl. Surat :</strong> {{ \Carbon\Carbon::parse($agenda->tgl_surat)->locale('id')->translatedFormat('d F Y') }}
                 </td>
                 <td style="width: 50%;" class="no-border-right">
-                    <strong>Diterima Tgl. :</strong> {{ \Carbon\Carbon::parse($agenda->tgl_diterima)->translatedFormat('d F Y') }}<br>
+                    <strong>Diterima Tgl. :</strong> {{ \Carbon\Carbon::parse($agenda->tgl_diterima)->locale('id')->translatedFormat('d F Y') }}<br>
                     <strong>No. Agenda :</strong> {{ $agenda->no_agenda }}<br>
                     <strong>Sifat :</strong><br>
                     <div style="margin-top: 5px;">
@@ -155,14 +146,12 @@
                 </td>
             </tr>
 
-            <!-- BARIS 2: PERIHAL / HAL -->
             <tr>
                 <td colspan="2" style="height: 50px;" class="no-border-left no-border-right">
                     <strong>Hal :</strong> {{ $agenda->perihal }}
                 </td>
             </tr>
 
-            <!-- BARIS 3: DITERUSKAN KEPADA & INSTRUKSI HARAP -->
             <tr>
                 <td style="height: 180px;" class="no-border-left">
                     <strong>Diteruskan Kepada Sdr. :</strong><br>
@@ -213,11 +202,10 @@
                 </td>
             </tr>
 
-            <!-- BARIS 4: CATATAN KADIS -->
             <tr>
                 <td colspan="2" style="height: 180px;" class="no-border-left no-border-right no-border-bottom">
                     <strong>Catatan :</strong><br>
-                    <div style="margin-top: 8px; font-style: italic; font-size: 11px;">
+                    <div style="margin-top: 8px; font-style: italic; font-size: 13px;">
                         {{ $agenda->catatan_kadis ?? '-' }}
                     </div>
                 </td>
