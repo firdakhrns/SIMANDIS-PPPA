@@ -108,8 +108,7 @@
                 <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">ALAMAT KANTOR</h4>
                 <p class="text-slate-500 leading-relaxed">
                     Dinas Pemberdayaan Perempuan dan Perlindungan Anak<br>
-                    Jl. KS Tubun No. 16, Kel. Kelayan Barat, Kec. Banjarmasin Selatan<br>
-                    Kota Banjarmasin, Kalimantan Selatan 70241
+                    Gedung Kantor Disdukcapil Lantai III, Jl. Sultan Adam No. 18 RT 28 Kelurahan Surgi Mufti, Kecamatan Banjarmasin Utara, Kota Banjarmasin, Kalimantan Selatan 70122
                 </p>
             </div>
         </div>

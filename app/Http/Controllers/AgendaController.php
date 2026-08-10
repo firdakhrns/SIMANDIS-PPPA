@@ -19,7 +19,6 @@ class AgendaController extends Controller
 
         $query = Agenda::with('realisasi')->orderBy('tgl_surat', 'desc');
 
-        // Jika halaman Mading Bidang (route 'mading.bidang') & role user, filter bidangnya
         if ($request->routeIs('mading.bidang')) {
             if ($role === 'user') {
                 $query->where('bidang_id', Auth::user()->bidang_id);
@@ -27,13 +26,11 @@ class AgendaController extends Controller
                 $query->where('bidang_id', $bidangFilter);
             }
         } else {
-            // Mading Utama: Bisa difilter lewat dropdown di atas jika diisi
             if ($bidangFilter) {
                 $query->where('bidang_id', $bidangFilter);
             }
         }
 
-        // Pencarian
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('perihal', 'like', "%{$search}%")
@@ -43,7 +40,6 @@ class AgendaController extends Controller
             });
         }
 
-        // Filter Status
         if ($status === 'terlaksana') {
             $query->where('status_pelaksanaan', 'terlaksana')->orWhereHas('realisasi');
         } elseif ($status === 'belum') {
@@ -70,29 +66,14 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'no_surat'       => [
-                'required', 
-                'string', 
-                'max:100', 
-                'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'
-            ],
+            'no_surat'       => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'],
             'no_agenda'      => 'required|string|max:50',
             'tgl_surat_date' => 'required|date',
             'tgl_surat_time' => 'required',
             'tgl_diterima'   => 'required|date',
-            'surat_dari'     => [
-                'required', 
-                'string', 
-                'max:255', 
-                'regex:/^[a-zA-Z0-9\s\.\,\-\(\)]+$/'
-            ],
+            'surat_dari'     => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\s\.\,\-\(\)\&\']+$/'],
             'sifat_surat'    => 'required|in:Segera,Sangat Segera,Rahasia',
-            'perihal'        => [
-                'required', 
-                'string', 
-                'max:1000', 
-                'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)]+$/'
-            ],
+            'perihal'        => ['required', 'string', 'max:1000', 'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)\?\"\'\:\;]+$/'],
             'bidang_id'      => 'required|integer|in:1,2,3,4',
             'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:51200',
         ], [
@@ -108,8 +89,11 @@ class AgendaController extends Controller
         if ($request->hasFile('file_pdf')) {
             $file = $request->file('file_pdf');
             $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $request->no_surat) . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('public/surat', $fileName);
+            
+            $file->move(public_path('uploads/undangan'), $fileName);
+            
             $validated['file_pdf'] = $fileName;
+            $validated['file_surat'] = $fileName;
         }
 
         Agenda::create($validated);
@@ -137,30 +121,33 @@ class AgendaController extends Controller
         $agenda = Agenda::findOrFail($id);
 
         $validated = $request->validate([
-            'no_surat'       => 'required|string',
+            'no_surat'       => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'],
             'tgl_surat_date' => 'required|date',
             'tgl_surat_time' => 'nullable',
             'tgl_diterima'   => 'required|date',
             'no_agenda'      => 'required|string',
             'sifat_surat'    => 'required|in:Sangat Segera,Segera,Rahasia',
-            'surat_dari'     => 'required|string',
-            'perihal'        => 'required|string',
+            'surat_dari'     => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\s\.\,\-\(\)\&\']+$/'],
+            'perihal'        => ['required', 'string', 'max:1000', 'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)\?\"\'\:\;]+$/'],
             'bidang_id'      => 'required|integer|between:1,4',
-            'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:50120',
+            'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:51200',
         ]);
 
         $jam = $request->tgl_surat_time ?? \Carbon\Carbon::parse($agenda->tgl_surat)->format('H:i');
         $fullDateTime = $request->tgl_surat_date . ' ' . $jam . ':00';
 
         if ($request->hasFile('file_pdf')) {
-            if ($agenda->file_pdf && file_exists(public_path('uploads/undangan/' . $agenda->file_pdf))) {
-                unlink(public_path('uploads/undangan/' . $agenda->file_pdf));
+            $oldFile = $agenda->file_pdf ?? $agenda->file_surat;
+            if ($oldFile && file_exists(public_path('uploads/undangan/' . $oldFile))) {
+                unlink(public_path('uploads/undangan/' . $oldFile));
             }
 
             $file = $request->file('file_pdf');
-            $namaFilePdf = time() . '_undangan.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/undangan'), $namaFilePdf);
-            $agenda->file_pdf = $namaFilePdf;
+            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $request->no_surat) . '.' . $file->getClientOriginalExtension();
+            
+            $file->move(public_path('uploads/undangan'), $fileName);
+            $agenda->file_pdf = $fileName;
+            $agenda->file_surat = $fileName;
         }
 
         $agenda->update([
@@ -173,25 +160,27 @@ class AgendaController extends Controller
             'perihal'      => $validated['perihal'],
             'bidang_id'    => $validated['bidang_id'],
             'file_pdf'     => $agenda->file_pdf,
+            'file_surat'   => $agenda->file_surat ?? $agenda->file_pdf,
         ]);
 
         $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
 
-        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil ditambahkan.');
+        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil diperbarui.');
     }
 
     public function destroy($id)
-{
-    $agenda = Agenda::findOrFail($id);
+    {
+        $agenda = Agenda::findOrFail($id);
 
-    if ($agenda->file_pdf && file_exists(public_path('uploads/undangan/' . $agenda->file_pdf))) {
-        unlink(public_path('uploads/undangan/' . $agenda->file_pdf));
+        $fileName = $agenda->file_pdf ?? $agenda->file_surat;
+        if ($fileName && file_exists(public_path('uploads/undangan/' . $fileName))) {
+            unlink(public_path('uploads/undangan/' . $fileName));
+        }
+
+        $agenda->delete(); 
+
+        $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
+
+        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil dihapus.');
     }
-
-    $agenda->delete(); 
-
-    $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
-
-    return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil dihapus.');
-}
 }

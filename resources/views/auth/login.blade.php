@@ -16,9 +16,7 @@
     <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
         <!-- Logo & Title -->
         <div class="text-center mb-8">
-            <div class="w-14 h-14 bg-navy text-white rounded-2xl mx-auto flex items-center justify-center font-bold text-2xl shadow-lg mb-4">
-                S
-            </div>
+            <img src="{{ asset('logo-tanpa-nama.png') }}" alt="Logo SIMANDIS" class="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-200 mx-auto flex items-center justify-center">
             <h1 class="text-2xl font-bold text-navy">SIMANDIS-PPPA</h1>
             <p class="text-xs text-slate-500 mt-1">Sistem Informasi Monitoring Agenda dan Disposisi PPPA</p>
         </div>

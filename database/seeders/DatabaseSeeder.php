@@ -14,15 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // ============================================
         // 1. AKUN USER
-        // ============================================
-        
         // Admin / Sekretariat
         User::create([
             'nama' => 'Admin Sekretariat',
             'email' => 'admin@gmail.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('sekretariat'),
             'role' => 'admin',
             'bidang_id' => null,
         ]);
@@ -31,7 +28,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'nama' => 'Drs. H. M. Ramadhan, M.Si',
             'email' => 'kadis@gmail.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('kadis'),
             'role' => 'kadis',
             'bidang_id' => null,
         ]);
@@ -40,7 +37,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'nama' => 'Staf Bidang PKA',
             'email' => 'pka@gmail.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('bidangpka'),
             'role' => 'user',
             'bidang_id' => 1,
         ]);
@@ -49,7 +46,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'nama' => 'Staf Bidang PP',
             'email' => 'pp@gmail.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('bidangpp'),
             'role' => 'user',
             'bidang_id' => 2,
         ]);
@@ -58,7 +55,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'nama' => 'Staf Bidang PHA',
             'email' => 'pha@gmail.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('bidangpha'),
             'role' => 'user',
             'bidang_id' => 3,
         ]);
@@ -67,7 +64,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'nama' => 'Staf Bidang KHP',
             'email' => 'khp@gmail.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('bidangkhp'),
             'role' => 'user',
             'bidang_id' => 4,
         ]);
