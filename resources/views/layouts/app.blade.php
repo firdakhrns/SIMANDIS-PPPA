@@ -25,21 +25,16 @@
 <body class="bg-[#F8FAFC] font-sans text-slate-800 antialiased">
 
     <div class="flex min-h-screen">
-        <!-- 📌 SIDEBAR LEFT NAVIGATION -->
         <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between fixed h-full z-20">
             <div>
-                <!-- Brand Header -->
                 <div class="p-5 flex items-center gap-3 border-b border-slate-100">
-                    <div class="w-10 h-10 bg-[#1E3A8A] rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-md">
-                        S
-                    </div>
+                    <img src="{{ asset('logo-simandis.png') }}" alt="Logo SIMANDIS" class="w-auto h-16 object-contain shadow-xs rounded-xl">
                     <div>
                         <h1 class="font-black text-[#1E3A8A] text-base leading-tight">SIMANDIS-PPPA</h1>
-                        <p class="text-[9px] text-slate-400 font-bold tracking-wider uppercase">DPPPA KOTA BANJARMASIN</p>
+                        <p class="text-[9px] text-slate-400 font-bold tracking-wider uppercase">Sistem Informasi Monitoring Agenda dan Disposisi</p>
                     </div>
                 </div>
 
-                <!-- Navigation Menu -->
                 <nav class="p-4 space-y-2">
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider px-3 mb-1">MAIN MENU</p>
 
@@ -54,21 +49,18 @@
                             $userBidangName = $bidangList[Auth::user()->bidang_id] ?? 'Bidang Saya';
                         @endphp
 
-                        <!-- Sidebar POV Staf Bidang (User) -->
                         <a href="{{ route('mading.index') }}" 
                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('mading.index') && !request('bidang') ? 'bg-blue-50 text-[#1E3A8A]' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-regular fa-calendar-check text-sm w-4"></i>
                             <span>Mading Utama</span>
                         </a>
 
-                        <!-- PERUBAHAN ADA DI SINI: Link ke mading.bidang -->
                         <a href="{{ route('mading.bidang') }}" 
                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('mading.bidang') ? 'bg-blue-50 text-[#1E3A8A]' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-users text-sm w-4"></i>
                             <span>{{ $userBidangName }}</span>
                         </a>
                     @else
-                        <!-- Sidebar POV Admin & Kadis -->
                         <a href="{{ route('mading.index') }}" 
                            class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('mading.index') && !request('bidang') ? 'bg-blue-50 text-[#1E3A8A]' : 'text-slate-600 hover:bg-slate-50' }}">
                             <div class="flex items-center gap-3">
@@ -90,11 +82,23 @@
                                 <span class="w-1.5 h-6 bg-[#1E3A8A] rounded-full -mr-3.5"></span>
                             @endif
                         </a>
+
+                        @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('surat.index') }}" 
+                           class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('surat.*') ? 'bg-blue-50 text-[#1E3A8A]' : 'text-slate-600 hover:bg-slate-50' }}">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-box-archive text-sm w-4"></i>
+                                <span>Arsip Surat Undangan</span>
+                            </div>
+                            @if(request()->routeIs('surat.*'))
+                                <span class="w-1.5 h-6 bg-[#1E3A8A] rounded-full -mr-3.5"></span>
+                            @endif
+                        </a>
+                        @endif
                     @endif
                 </nav>
             </div>
 
-            <!-- Profile User Bottom Badge -->
             <div class="p-4 border-t border-slate-100 bg-slate-50/50">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-9 h-9 rounded-full bg-navy text-white flex items-center justify-center font-bold text-xs">
@@ -106,7 +110,6 @@
                             {{ Auth::user()->nama ?? Auth::user()->name ?? 'Pengguna' }}
                         </p>
                         
-                        <!-- Subtext Role Sesuai Mockup Figma -->
                         <p class="text-[10px] font-extrabold text-navy uppercase">
                             @if(Auth::user()->role === 'kadis')
                                 KEPALA DINAS
@@ -128,16 +131,14 @@
             </div>
         </aside>
 
-        <!-- 📌 MAIN CONTENT AREA -->
         <main class="flex-1 ml-64 p-8 flex flex-col justify-between min-h-screen">
             <div>
                 @yield('content')
             </div>
 
-            <!-- FOOTER BAWAH LENGKAP -->
             <footer class="mt-12 pt-6 border-t border-slate-200/60 flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-400 gap-4">
                 <div>
-                    &copy; {{ date('Y') }} DP3A Kota Banjarmasin - Sistem Informasi Manajemen Agenda & Disposisi
+                    &copy; {{ date('Y') }} Dinas Pemberdayaan Perempuan dan Anak Kota Banjarmasin - Sistem Informasi Manajemen Agenda & Disposisi
                 </div>
                 <div class="flex items-center gap-6 font-semibold">
                     <a href="#" class="hover:text-slate-600 transition-colors">Panduan Pengguna</a>

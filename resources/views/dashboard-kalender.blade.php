@@ -7,9 +7,6 @@
     $tahun = $tahun ?? request('tahun', now()->year);
     $agendas = $agendas ?? collect();
 
-    // -------------------------------------------------------------------------
-    // LOGIKA DINAMIS HITUNG STATISTIK & PERSENTASE
-    // -------------------------------------------------------------------------
     $totalAgenda = $agendas->count();
 
     // 1. Hitung Total Disposisi & Persentase Ketercapaian Disposisi
@@ -50,10 +47,6 @@
                     @endfor
                 </select>
             </form>
-
-            <a href="{{ route('cetak.kalender') }}" target="_blank" class="px-4 py-2 bg-navy text-white text-xs font-bold rounded-xl hover:bg-blue-900 transition-all shadow-xs flex items-center gap-2">
-                <i class="fa-solid fa-file-export"></i> Export PDF
-            </a>
         </div>
     </div>
 
@@ -115,7 +108,7 @@
 
             @if(Auth::user()->role === 'kadis')
                 <span class="px-3 py-1 bg-rose-100 text-rose-600 font-extrabold text-xs rounded-full">
-                    ! {{ $agendas->filter(fn($a) => empty($a->status_disposisi))->count() }} Agenda Pending
+                    ! {{ $agendas->filter(fn($a) => empty($a->status_disposisi))->count() }} Agenda Pending 
                 </span>
             @endif
         </div>
@@ -128,17 +121,13 @@
                         <th class="p-3 w-32">TANGGAL & JAM</th>
                         <th class="p-3 w-40">SURAT DARI</th>
                         <th class="p-3">PERIHAL / AGENDA</th>
-                        <th class="p-3 w-40 text-center">BIDANG PENANGGUNG JAWAB</th>
-                        
-                        @if(Auth::user()->role === 'admin')
-                            <th class="p-3 w-36 text-center">STATUS DISPOSISI</th>
-                        @else
-                            <th class="p-3 w-28 text-center">AKSI</th>
-                        @endif
+                        <th class="p-3 w-36 text-center">BIDANG PENANGGUNG JAWAB</th>
+                        <th class="p-3 w-36 text-center">STATUS DISPOSISI</th>
+                        <th class="p-3 w-36 text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @forelse($agendas->take(3) as $index => $item)
+                    @forelse($agendas->take(5) as $index => $item)
                         @php
                             $bidangBadge = [
                                 1 => ['nama' => 'PKA', 'bg' => 'bg-purple-100 text-purple-700'],
@@ -168,30 +157,38 @@
                                     {{ $bidangBadge['nama'] }}
                                 </span>
                             </td>
-
-                            @if(Auth::user()->role === 'admin')
-                                <td class="p-3 text-center">
+                            <td class="p-3 text-center">
+                                @if(!empty($statusDisposisi))
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 font-bold text-[10px] rounded-full inline-block">
+                                        {{ $statusDisposisi }}
+                                    </span>
+                                @else
+                                    <span class="px-3 py-1 bg-amber-100 text-amber-700 font-bold text-[10px] rounded-full inline-block">
+                                        Menunggu Kadis
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="p-3 text-center">
+                                @if(Auth::user()->role === 'admin')
                                     @if(!empty($statusDisposisi))
-                                        <span class="px-3 py-1 bg-blue-100 text-blue-700 font-bold text-[10px] rounded-full inline-block">
-                                            Sudah Disposisi
-                                        </span>
+                                        <a href="{{ route('disposisi.cetak', $item->id) }}" target="_blank" class="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-bold rounded-xl hover:bg-rose-700 transition-colors inline-flex items-center gap-1.5 shadow-xs">
+                                            <i class="fa-solid fa-file-pdf"></i> Export PDF
+                                        </a>
                                     @else
-                                        <span class="px-3 py-1 bg-amber-100 text-amber-700 font-bold text-[10px] rounded-full inline-block">
-                                            Menunggu Kadis
+                                        <span class="px-2.5 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-xl inline-block cursor-not-allowed" title="Belum dapat dicetak karena belum ada disposisi Kadis">
+                                            <i class="fa-solid fa-lock text-[9px] mr-1"></i> Belum Ada Disposisi
                                         </span>
                                     @endif
-                                </td>
-                            @else
-                                <td class="p-3 text-center">
+                                @else
                                     <a href="{{ route('disposisi.edit', $item->id) }}" class="px-3 py-1.5 bg-navy text-white text-[10px] font-bold rounded-xl hover:bg-blue-900 transition-colors inline-block">
                                         Atur Disposisi
                                     </a>
-                                </td>
-                            @endif
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center p-6 text-slate-400">Tidak ada agenda saat ini.</td>
+                            <td colspan="7" class="text-center p-6 text-slate-400">Tidak ada agenda saat ini.</td>
                         </tr>
                     @endforelse
                 </tbody>

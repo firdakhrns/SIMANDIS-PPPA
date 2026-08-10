@@ -12,13 +12,13 @@
         <i class="fa-solid fa-house"></i> Mading Utama
     </a>
     <i class="fa-solid fa-chevron-right text-[10px]"></i>
-    <span class="font-bold text-navy">{{ $isEdit ? 'Edit Agenda Kegiatan' : '+ Registrasi Surat Undangan Masuk' }}</span>
+    <span class="font-bold text-navy">{{ $isEdit ? 'Edit Agenda Kegiatan' : 'Surat Undangan Masuk' }}</span>
 </div>
 
 <!-- Card Form Utama -->
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl border border-slate-100 shadow-xs">
     <div class="mb-6 border-b border-slate-100 pb-4">
-        <h2 class="text-base font-bold text-navy">{{ $isEdit ? 'Edit Data Surat Undangan Agenda' : 'Registrasi Surat Undangan Masuk' }}</h2>
+        <h2 class="text-base font-bold text-navy">{{ $isEdit ? 'Edit Data Surat Undangan Agenda' : 'Surat Undangan Masuk' }}</h2>
         <p class="text-xs text-slate-400 mt-1">
             {{ $isEdit ? 'Perbarui data agenda kegiatan yang sudah terdaftar.' : 'Input data awal surat masuk untuk mading agenda internal.' }}
         </p>
@@ -45,19 +45,17 @@
         {{-- Auto generate no_agenda jika baru --}}
         <input type="hidden" name="no_agenda" value="{{ old('no_agenda', $agenda->no_agenda ?? 'AGD-' . time()) }}">
 
-        <!-- 1. Nomor Surat & Jumlah Peserta -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
                 <input type="text" name="no_surat" value="{{ old('no_surat', $agenda->no_surat ?? '') }}" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">
             </div>
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Jumlah Peserta</label>
-                <input type="number" name="jumlah_peserta" value="{{ old('jumlah_peserta', $agenda->jumlah_peserta ?? '') }}" placeholder="Masukkan jumlah estimasi peserta..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">
+                <label class="block font-bold text-slate-700 mb-1">No Agenda</label>
+                <input type="number" name="no_agenda" value="{{ old('no_agenda', $agenda->no_agenda ?? '') }}" placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">
             </div>
         </div>
 
-        <!-- 2. Tanggal Surat & Tanggal Diterima -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Tanggal Surat <span class="text-rose-500">*</span></label>
@@ -69,7 +67,6 @@
             </div>
         </div>
 
-        <!-- 3. Jam Kegiatan & Surat Dari / Pengirim -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Jam Kegiatan <span class="text-rose-500">*</span></label>
@@ -81,7 +78,6 @@
             </div>
         </div>
 
-        <!-- 4. Sifat Surat -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">Sifat Surat <span class="text-rose-500">*</span></label>
             <select name="sifat_surat" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-navy">
@@ -91,13 +87,11 @@
             </select>
         </div>
 
-        <!-- 5. Perihal / Nama Agenda -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">Perihal / Nama Agenda <span class="text-rose-500">*</span></label>
             <textarea name="perihal" rows="3" required placeholder="Deskripsikan inti agenda atau perihal surat di sini..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">{{ old('perihal', $agenda->perihal ?? '') }}</textarea>
         </div>
 
-        <!-- 6. Upload File Surat Undangan -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">File Surat Undangan (PDF / Word)</label>
             <div class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors">
@@ -114,7 +108,6 @@
             </div>
         </div>
 
-        <!-- 7. Bidang Penanggung Jawab -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">Diteruskan ke Bidang Penanggung Jawab <span class="text-rose-500">*</span></label>
             <select name="bidang_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-navy">
@@ -131,7 +124,6 @@
             $backTitle = Auth::user()->role === 'admin' ? 'Mading Utama' : 'Mading Bidang';
         @endphp
 
-        <!-- Tombol Batal & Simpan di bagian bawah form -->
         <div class="pt-4 flex justify-end gap-3">
             <a href="{{ $backRoute }}" class="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:bg-slate-50">
                 Batal

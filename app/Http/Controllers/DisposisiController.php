@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agenda;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DisposisiController extends Controller
 {
@@ -31,4 +32,12 @@ class DisposisiController extends Controller
 
     return redirect()->route('mading.index')->with('success', 'Status disposisi pimpinan berhasil diperbarui.');
 }
+public function cetak($id)
+    {
+        $agenda = Agenda::findOrFail($id);
+        
+        $pdf = Pdf::loadView('cetak.lembar-disposisi', compact('agenda')); 
+        
+        return $pdf->stream('Lembar-Disposisi-' . $agenda->id . '.pdf');
+    }
 }

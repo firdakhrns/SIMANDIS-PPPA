@@ -216,7 +216,6 @@
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 @if(Auth::user()->role === 'admin')
-                                    <!-- ADMIN MOCKUP: PENSIL (EDIT) + TONG SAMPAH (HAPUS) + DETAIL -->
                                     <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-navy text-xs p-1" title="Edit Agenda">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
@@ -234,7 +233,6 @@
                                         Detail
                                     </button>
                                 @else
-                                    <!-- KADIS MOCKUP: ATUR DISPOSISI + DETAIL -->
                                     <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2.5 py-1 bg-navy text-white text-[10px] font-bold rounded-lg hover:bg-blue-900 transition-colors inline-block">
                                         Atur Disposisi
                                     </a>
@@ -270,7 +268,6 @@
     @endif
 </div>
 
-<!-- 🔍 MODAL DETAIL POPUP -->
 <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">

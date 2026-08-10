@@ -70,44 +70,51 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'no_surat'       => 'required|string',
+            'no_surat'       => [
+                'required', 
+                'string', 
+                'max:100', 
+                'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'
+            ],
+            'no_agenda'      => 'required|string|max:50',
             'tgl_surat_date' => 'required|date',
-            'tgl_surat_time' => 'nullable',
+            'tgl_surat_time' => 'required',
             'tgl_diterima'   => 'required|date',
-            'no_agenda'      => 'required|string',
-            'sifat_surat'    => 'required|in:Sangat Segera,Segera,Rahasia',
-            'surat_dari'     => 'required|string',
-            'perihal'        => 'required|string',
-            'bidang_id'      => 'required|integer|between:1,4',
-            'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:50120',
+            'surat_dari'     => [
+                'required', 
+                'string', 
+                'max:255', 
+                'regex:/^[a-zA-Z0-9\s\.\,\-\(\)]+$/'
+            ],
+            'sifat_surat'    => 'required|in:Segera,Sangat Segera,Rahasia',
+            'perihal'        => [
+                'required', 
+                'string', 
+                'max:1000', 
+                'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)]+$/'
+            ],
+            'bidang_id'      => 'required|integer|in:1,2,3,4',
+            'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:51200',
+        ], [
+            'no_surat.regex'   => 'Nomor surat hanya boleh berisi huruf, angka, serta simbol garis miring (/), titik (.), dan strip (-).',
+            'surat_dari.regex' => 'Nama pengirim hanya boleh berisi huruf, angka, spasi, titik (.), koma (,), dan tanda kurung ().',
+            'perihal.regex'    => 'Isi perihal tidak boleh mengandung karakter khusus simbol tak terduga.',
+            'file_pdf.mimes'   => 'Format berkas harus berupa dokumen PDF, DOC, atau DOCX.',
+            'file_pdf.max'     => 'Ukuran berkas tidak boleh melebihi 50 MB.',
         ]);
 
-        $jam = $request->tgl_surat_time ?? '08:00';
-        $fullDateTime = $request->tgl_surat_date . ' ' . $jam . ':00';
+        $validated['tgl_surat'] = $request->tgl_surat_date . ' ' . $request->tgl_surat_time;
 
-        $namaFilePdf = null;
         if ($request->hasFile('file_pdf')) {
             $file = $request->file('file_pdf');
-            $namaFilePdf = time() . '_undangan.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/undangan'), $namaFilePdf);
+            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $request->no_surat) . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('public/surat', $fileName);
+            $validated['file_pdf'] = $fileName;
         }
 
-        Agenda::create([
-            'no_surat'           => $validated['no_surat'],
-            'tgl_surat'          => $fullDateTime,
-            'tgl_diterima'       => $validated['tgl_diterima'],
-            'no_agenda'          => $validated['no_agenda'],
-            'sifat_surat'        => $validated['sifat_surat'],
-            'surat_dari'         => $validated['surat_dari'],
-            'perihal'            => $validated['perihal'],
-            'bidang_id'          => $validated['bidang_id'],
-            'file_pdf'           => $namaFilePdf,
-            'status_pelaksanaan' => 'belum',
-        ]);
+        Agenda::create($validated);
 
-        $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
-
-        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil ditambahkan.');
+        return redirect()->route('mading.index')->with('success', 'Agenda kegiatan berhasil diregistrasi.');
     }
 
     public function toggleStatus($id)
