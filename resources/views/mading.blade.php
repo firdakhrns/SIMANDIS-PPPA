@@ -2,12 +2,10 @@
 
 @section('content')
 
-<!-- Header & Filter Bar -->
 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
     <h2 class="text-2xl font-bold text-slate-800">Mading Utama</h2>
 
     <div class="flex flex-wrap items-center gap-3">
-        <!-- Dropdown Filter Bidang -->
         <select onchange="location = this.value;" class="bg-white border border-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2 text-slate-700 shadow-xs focus:outline-none focus:border-navy">
             <option value="{{ route('mading.index', request()->except('bidang')) }}">Filter Bidang</option>
             <option value="{{ route('mading.index', array_merge(request()->query(), ['bidang' => 1])) }}" {{ request('bidang') == 1 ? 'selected' : '' }}>Bidang PKA</option>
@@ -16,14 +14,12 @@
             <option value="{{ route('mading.index', array_merge(request()->query(), ['bidang' => 4])) }}" {{ request('bidang') == 4 ? 'selected' : '' }}>Bidang KHP</option>
         </select>
 
-        <!-- Dropdown Status Terlaksana -->
         <select onchange="location = this.value;" class="bg-white border border-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2 text-slate-700 shadow-xs focus:outline-none focus:border-navy">
             <option value="{{ route('mading.index', request()->except('status')) }}">Status Terlaksana</option>
             <option value="{{ route('mading.index', array_merge(request()->query(), ['status' => 'terlaksana'])) }}" {{ request('status') === 'terlaksana' ? 'selected' : '' }}>Terlaksana</option>
             <option value="{{ route('mading.index', array_merge(request()->query(), ['status' => 'belum'])) }}" {{ request('status') === 'belum' ? 'selected' : '' }}>Belum Terlaksana</option>
         </select>
 
-        {{-- KHUSUS ROLE ADMIN: TOMBOL + JADWAL KEGIATAN --}}
         @if(Auth::user()->role === 'admin')
             <a href="{{ route('agenda.create') }}" class="px-4 py-2 bg-navy text-white text-xs font-bold rounded-xl hover:bg-blue-900 transition-all shadow-xs flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i> Jadwal Kegiatan
@@ -36,7 +32,6 @@
             </a>
         @endif
 
-        <!-- Search Box -->
         <form action="{{ route('mading.index') }}" method="GET" class="relative flex items-center">
             @foreach(request()->except(['search', 'page']) as $key => $val)
                 <input type="hidden" name="{{ $key }}" value="{{ $val }}">
@@ -59,7 +54,6 @@
     </div>
 </div>
 
-<!-- 📅 TIMELINE AGENDA HARI INI -->
 <div class="mb-8">
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -134,7 +128,6 @@
     </div>
 </div>
 
-<!-- 📊 TABEL DAFTAR AGENDA LENGKAP -->
 <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs">
     <h3 class="text-sm font-bold text-slate-800 mb-4">Daftar Agenda Lengkap</h3>
 
@@ -212,7 +205,6 @@
                             @endif
                         </td>
 
-                        <!-- AKSI BERBEDAKAN ADMIN VS KADIS -->
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 @if(Auth::user()->role === 'admin')
@@ -226,23 +218,19 @@
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
-                                    <button type="button" 
-                                            data-item="{{ json_encode($item) }}" 
-                                            onclick="handleDetailClick(this)"
-                                            class="px-2.5 py-1 bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-bold rounded-lg transition-colors inline-block">
-                                        Detail
-                                    </button>
-                                @else
+                                @elseif(Auth::user()->role === 'kadis')
+                                    {{-- HANYA KADIS YANG BISA ATUR DISPOSISI --}}
                                     <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2.5 py-1 bg-navy text-white text-[10px] font-bold rounded-lg hover:bg-blue-900 transition-colors inline-block">
                                         Atur Disposisi
                                     </a>
-                                    <button type="button" 
-                                            data-item="{{ json_encode($item) }}" 
-                                            onclick="handleDetailClick(this)"
-                                            class="px-2.5 py-1 bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-bold rounded-lg transition-colors inline-block">
-                                        Detail
-                                    </button>
                                 @endif
+
+                                <button type="button" 
+                                        data-item="{{ json_encode($item) }}" 
+                                        onclick="handleDetailClick(this)"
+                                        class="px-2.5 py-1 bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-bold rounded-lg transition-colors inline-block">
+                                    Detail
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -255,7 +243,6 @@
         </table>
     </div>
 
-    <!-- Paginasi -->
     @if(method_exists($agendas, 'hasPages') && $agendas->hasPages())
         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
             <p class="text-xs text-slate-400">

@@ -11,13 +11,11 @@
     ][Auth::user()->bidang_id ?? request('bidang')] ?? 'Manajemen Agenda Bidang';
 @endphp
 
-<!-- Header Title -->
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-[#1a2b4c]">Manajemen Agenda</h2>
     <p class="text-xs text-slate-400 mt-0.5">Kelola jadwal internal dan input agenda kegiatan {{ $bidangTitle }}.</p>
 </div>
 
-<!-- 📊 2 STAT CARDS (HANYA BULAN INI DAN MENDATANG) -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
     <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
         <div>
@@ -46,18 +44,25 @@
     </div>
 </div>
 
-<!-- 📋 TABEL DAFTAR KEGIATAN BIDANG -->
 <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-8">
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-slate-800">Daftar Kegiatan {{ $bidangTitle }}</h3>
-        <div class="flex items-center gap-2">
-            <button class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                <i class="fa-solid fa-filter text-slate-400"></i> Filter
-            </button>
-            <button class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                <i class="fa-solid fa-file-export text-slate-400"></i> Eksport
-            </button>
-        </div>
+        
+        <form method="GET" action="{{ route('mading.bidang') }}" class="flex items-center gap-2">
+            <select name="bulan" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-xs font-bold rounded-xl px-3 py-1.5 text-slate-700 focus:outline-none focus:border-[#1a2b4c]">
+                <option value="">-- Semua Bulan --</option>
+                @for($m = 1; $m <= 12; $m++)
+                    <option value="{{ $m }}" {{ request('bulan') == $m ? 'selected' : '' }}>
+                        {{ \Carbon\Carbon::create(null, $m, 1)->locale('id')->translatedFormat('F') }}
+                    </option>
+                @endfor
+            </select>
+            @if(request('bulan'))
+                <a href="{{ route('mading.bidang') }}" class="px-2.5 py-1.5 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl hover:bg-rose-100">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            @endif
+        </form>
     </div>
 
     <div class="overflow-x-auto">
@@ -116,12 +121,10 @@
                         </td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-3">
-                                <!-- Tombol Edit -->
                                 <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-[#1a2b4c] text-xs" title="Edit Agenda">
                                     <i class="fa-solid fa-pen"></i>
                                 </a>
 
-                                <!-- Tombol Hapus -->
                                 <form action="{{ route('agenda.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}" class="inline">
                                     @csrf
                                     @method('DELETE')
@@ -130,7 +133,6 @@
                                     </button>
                                 </form>
 
-                                <!-- Tombol Detail -->
                                 <button type="button" 
                                         data-item="{{ json_encode($item) }}"
                                         onclick="handleDetailClick(this)" 
@@ -154,7 +156,6 @@
     </div>
 </div>
 
-<!-- 📝 FORM INPUT AGENDA KEGIATAN BIDANG (SINKRON DENGAN FORM UNDANGAN) -->
 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
     <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -183,21 +184,18 @@
             <input type="hidden" name="bidang_id" value="{{ Auth::user()->bidang_id ?? request('bidang', 1) }}">
         @endif
 
-        <input type="hidden" name="no_agenda" value="AGD-{{ time() }}">
-
-        <!-- Row 1: Nomor Surat & Jumlah Peserta -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
-                <input type="text" name="no_surat" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="text" name="no_surat" minlength="10" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Jumlah Peserta</label>
-                <input type="number" name="jumlah_peserta" placeholder="Masukkan jumlah estimasi peserta..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
+                <input type="text" name="no_agenda" value="{{ old('no_agenda', 'AGD-' . time()) }}" required 
+                       placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
         </div>
 
-        <!-- Row 2: Tanggal Surat & Tanggal Diterima -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Tanggal Surat <span class="text-rose-500">*</span></label>
@@ -209,19 +207,22 @@
             </div>
         </div>
 
-        <!-- Row 3: Jam Kegiatan & Surat Dari / Pengirim -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Jam Kegiatan <span class="text-rose-500">*</span></label>
                 <input type="time" name="tgl_surat_time" value="08:30" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
-                <input type="text" name="surat_dari" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <label class="block font-bold text-slate-700 mb-1">Tanggal Pelaksanaan Kegiatan <span class="text-rose-500">*</span></label>
+                <input type="date" name="tgl_kegiatan_date" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
         </div>
 
-        <!-- Sifat Surat -->
+        <div>
+            <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
+            <input type="text" name="surat_dari" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+        </div>
+
         <div>
             <label class="block font-bold text-slate-700 mb-1">Sifat Surat <span class="text-rose-500">*</span></label>
             <select name="sifat_surat" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#1a2b4c]">
@@ -231,13 +232,11 @@
             </select>
         </div>
 
-        <!-- Perihal / Nama Agenda -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">Perihal / Nama Agenda <span class="text-rose-500">*</span></label>
-            <textarea name="perihal" rows="3" required placeholder="Masukkan ringkasan perihal atau nama agenda kegiatan secara detail..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]"></textarea>
+            <textarea name="perihal" rows="3" minlength="10" maxlength="100" required placeholder="Masukkan ringkasan perihal atau nama agenda kegiatan (10 - 100 karakter)..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]"></textarea>
         </div>
 
-        <!-- FILE UPLOAD WITH DRAG & DROP -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">File Surat Undangan (PDF / Word)</label>
             <div id="dropZone" class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer">
@@ -269,7 +268,6 @@
     </form>
 </div>
 
-<!-- MODAL DETAIL -->
 <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -312,7 +310,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // 1. DRAG & DROP FILE UPLOAD
     document.addEventListener('DOMContentLoaded', function() {
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -330,7 +327,7 @@
 
         fileInput.addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
-                handleFile(this.files[0]);
+                validateAndHandleFile(this.files[0]);
             }
         });
 
@@ -399,7 +396,6 @@
         });
     });
 
-    // 2. STATUS TOGGLE
     function handleStatusClick(button) {
         const id = button.getAttribute('data-id');
         const currentStatus = button.getAttribute('data-status');
@@ -421,7 +417,6 @@
         });
     }
 
-    // 3. HAPUS AGENDA
     function handleDeleteClick(id) {
         Swal.fire({
             title: 'Hapus Agenda?',
@@ -439,7 +434,6 @@
         });
     }
 
-    // 4. DETAIL MODAL
     function handleDetailClick(button) {
         const data = JSON.parse(button.getAttribute('data-item'));
         document.getElementById('modalNoSurat').innerText = `${data.no_surat} (${data.no_agenda || '-'})`;

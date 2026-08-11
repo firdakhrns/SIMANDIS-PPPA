@@ -2,24 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Disposisi;
 
 class Agenda extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'no_surat', 'tgl_surat', 'tgl_diterima', 'no_agenda', 'sifat_surat',
-        'surat_dari', 'perihal', 'file_pdf', 'status_pelaksanaan','bidang_id', 
-        'status_disposisi', 'diteruskan_kepada', 'instruksi_pimpinan', 'catatan_kadis'
+        'surat_id', 'no_agenda', 'bidang_id', 
+        'tgl_kegiatan', 'jam_kegiatan', 'status_pelaksanaan'
     ];
 
-    protected $casts = [
-        'diteruskan_kepada' => 'array',
-        'instruksi_pimpinan' => 'array',
-    ];
-
-    public function realisasi(): HasOne
+    public function surat()
     {
-        return $this->hasOne(Realisasi::class);
+        return $this->belongsTo(Surat::class, 'surat_id');
+    }
+
+    public function disposisi()
+    {
+        return $this->hasOne(Disposisi::class, 'agenda_id');
     }
 }

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Surat;
 use App\Models\Agenda;
+use App\Models\Disposisi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AgendaController extends Controller
 {
@@ -17,9 +20,8 @@ class AgendaController extends Controller
         $bulan = $request->query('bulan');
         $tahun = $request->query('tahun');
 
-        $query = Agenda::with('realisasi')->orderBy('tgl_surat', 'desc');
+        $query = Agenda::with(['surat', 'disposisi'])->orderBy('tgl_kegiatan', 'desc');
 
-        // Jika halaman Mading Bidang (route 'mading.bidang') & role user, filter bidangnya
         if ($request->routeIs('mading.bidang')) {
             if ($role === 'user') {
                 $query->where('bidang_id', Auth::user()->bidang_id);
@@ -27,31 +29,28 @@ class AgendaController extends Controller
                 $query->where('bidang_id', $bidangFilter);
             }
         } else {
-            // Mading Utama: Bisa difilter lewat dropdown di atas jika diisi
             if ($bidangFilter) {
                 $query->where('bidang_id', $bidangFilter);
             }
         }
 
-        // Pencarian
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->whereHas('surat', function($q) use ($search) {
                 $q->where('perihal', 'like', "%{$search}%")
                   ->orWhere('surat_dari', 'like', "%{$search}%")
-                  ->orWhere('no_surat', 'like', "%{$search}%")
-                  ->orWhere('no_agenda', 'like', "%{$search}%");
-            });
+                  ->orWhere('no_surat', 'like', "%{$search}%");
+            })->orWhere('no_agenda', 'like', "%{$search}%");
         }
 
-        // Filter Status
         if ($status === 'terlaksana') {
-            $query->where('status_pelaksanaan', 'terlaksana')->orWhereHas('realisasi');
+            $query->where('status_pelaksanaan', 'terlaksana');
         } elseif ($status === 'belum') {
-            $query->where('status_pelaksanaan', 'belum')->whereDoesntHave('realisasi');
+            $query->where('status_pelaksanaan', 'belum');
         }
 
-        if ($bulan) { $query->whereMonth('tgl_surat', $bulan); }
-        if ($tahun) { $query->whereYear('tgl_surat', $tahun); }
+        if ($bulan) {
+            $query->whereHas('surat', fn($q) => $q->whereMonth('tgl_surat', $bulan));
+        }
 
         $agendas = $query->paginate(10)->withQueryString();
 
@@ -62,59 +61,58 @@ class AgendaController extends Controller
         return view('mading', compact('agendas'));
     }
 
-    public function create()
-    {
-        return view('form-undangan');
-    }
-
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'no_surat'       => [
-                'required', 
-                'string', 
-                'max:100', 
-                'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'
-            ],
-            'no_agenda'      => 'required|string|max:50',
-            'tgl_surat_date' => 'required|date',
-            'tgl_surat_time' => 'required',
-            'tgl_diterima'   => 'required|date',
-            'surat_dari'     => [
-                'required', 
-                'string', 
-                'max:255', 
-                'regex:/^[a-zA-Z0-9\s\.\,\-\(\)]+$/'
-            ],
-            'sifat_surat'    => 'required|in:Segera,Sangat Segera,Rahasia',
-            'perihal'        => [
-                'required', 
-                'string', 
-                'max:1000', 
-                'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)]+$/'
-            ],
-            'bidang_id'      => 'required|integer|in:1,2,3,4',
-            'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:51200',
-        ], [
-            'no_surat.regex'   => 'Nomor surat hanya boleh berisi huruf, angka, serta simbol garis miring (/), titik (.), dan strip (-).',
-            'surat_dari.regex' => 'Nama pengirim hanya boleh berisi huruf, angka, spasi, titik (.), koma (,), dan tanda kurung ().',
-            'perihal.regex'    => 'Isi perihal tidak boleh mengandung karakter khusus simbol tak terduga.',
-            'file_pdf.mimes'   => 'Format berkas harus berupa dokumen PDF, DOC, atau DOCX.',
-            'file_pdf.max'     => 'Ukuran berkas tidak boleh melebihi 50 MB.',
+        $request->validate([
+            'no_surat'          => ['required', 'string', 'min:10', 'max:50', 'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'],
+            'no_agenda'         => 'required|string|max:50',
+            'tgl_surat_date'    => 'required|date',
+            'tgl_surat_time'    => 'required',
+            'tgl_kegiatan_date' => 'required|date',
+            'tgl_diterima'      => 'required|date',
+            'surat_dari'        => ['required', 'string', 'max:255', 'regex:/^(?=.*[a-zA-Z])[a-zA-Z0-9\s\.\,\-\(\)\&\']+$/'],
+            'sifat_surat'       => 'required|in:Segera,Sangat Segera,Rahasia',
+            'perihal'           => ['required', 'string', 'min:10', 'max:100', 'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)\?\"\'\:\;]+$/'],
+            'bidang_id'         => 'required|integer|in:1,2,3,4',
+            'file_pdf'          => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
-        $validated['tgl_surat'] = $request->tgl_surat_date . ' ' . $request->tgl_surat_time;
+        DB::transaction(function () use ($request) {
+            // 1. Simpan Berkas Surat
+            $fileName = null;
+            if ($request->hasFile('file_pdf')) {
+                $file = $request->file('file_pdf');
+                $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $request->no_surat) . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/undangan'), $fileName);
+            }
 
-        if ($request->hasFile('file_pdf')) {
-            $file = $request->file('file_pdf');
-            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $request->no_surat) . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('public/surat', $fileName);
-            $validated['file_pdf'] = $fileName;
-        }
+            $surat = Surat::create([
+                'no_surat'     => $request->no_surat,
+                'tgl_surat'    => $request->tgl_surat_date . ' ' . $request->tgl_surat_time,
+                'tgl_diterima' => $request->tgl_diterima,
+                'sifat_surat'  => $request->sifat_surat,
+                'surat_dari'   => $request->surat_dari,
+                'perihal'      => $request->perihal,
+                'file_pdf'     => $fileName,
+            ]);
 
-        Agenda::create($validated);
+            // 2. Simpan Agenda
+            $agenda = Agenda::create([
+                'surat_id'     => $surat->id,
+                'no_agenda'    => $request->no_agenda,
+                'bidang_id'    => $request->bidang_id,
+                'tgl_kegiatan' => $request->tgl_kegiatan_date,
+                'jam_kegiatan' => $request->tgl_surat_time,
+            ]);
 
-        return redirect()->route('mading.index')->with('success', 'Agenda kegiatan berhasil diregistrasi.');
+            // 3. Inisialisasi Record Disposisi
+            Disposisi::create([
+                'agenda_id' => $agenda->id,
+            ]);
+        });
+
+        $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
+        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil diregistrasi.');
     }
 
     public function toggleStatus($id)
@@ -125,73 +123,4 @@ class AgendaController extends Controller
 
         return back()->with('success', 'Status pelaksanaan berhasil diperbarui.');
     }
-
-    public function edit($id)
-    {
-        $agenda = Agenda::findOrFail($id);
-        return view('form-undangan', compact('agenda'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $agenda = Agenda::findOrFail($id);
-
-        $validated = $request->validate([
-            'no_surat'       => 'required|string',
-            'tgl_surat_date' => 'required|date',
-            'tgl_surat_time' => 'nullable',
-            'tgl_diterima'   => 'required|date',
-            'no_agenda'      => 'required|string',
-            'sifat_surat'    => 'required|in:Sangat Segera,Segera,Rahasia',
-            'surat_dari'     => 'required|string',
-            'perihal'        => 'required|string',
-            'bidang_id'      => 'required|integer|between:1,4',
-            'file_pdf'       => 'nullable|file|mimes:pdf,doc,docx|max:50120',
-        ]);
-
-        $jam = $request->tgl_surat_time ?? \Carbon\Carbon::parse($agenda->tgl_surat)->format('H:i');
-        $fullDateTime = $request->tgl_surat_date . ' ' . $jam . ':00';
-
-        if ($request->hasFile('file_pdf')) {
-            if ($agenda->file_pdf && file_exists(public_path('uploads/undangan/' . $agenda->file_pdf))) {
-                unlink(public_path('uploads/undangan/' . $agenda->file_pdf));
-            }
-
-            $file = $request->file('file_pdf');
-            $namaFilePdf = time() . '_undangan.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/undangan'), $namaFilePdf);
-            $agenda->file_pdf = $namaFilePdf;
-        }
-
-        $agenda->update([
-            'no_surat'     => $validated['no_surat'],
-            'tgl_surat'    => $fullDateTime,
-            'tgl_diterima' => $validated['tgl_diterima'],
-            'no_agenda'    => $validated['no_agenda'],
-            'sifat_surat'  => $validated['sifat_surat'],
-            'surat_dari'   => $validated['surat_dari'],
-            'perihal'      => $validated['perihal'],
-            'bidang_id'    => $validated['bidang_id'],
-            'file_pdf'     => $agenda->file_pdf,
-        ]);
-
-        $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
-
-        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil ditambahkan.');
-    }
-
-    public function destroy($id)
-{
-    $agenda = Agenda::findOrFail($id);
-
-    if ($agenda->file_pdf && file_exists(public_path('uploads/undangan/' . $agenda->file_pdf))) {
-        unlink(public_path('uploads/undangan/' . $agenda->file_pdf));
-    }
-
-    $agenda->delete(); 
-
-    $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
-
-    return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil dihapus.');
-}
 }

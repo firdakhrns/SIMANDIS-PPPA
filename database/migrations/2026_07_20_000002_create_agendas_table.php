@@ -12,12 +12,14 @@ return new class extends Migration
             $table->id();
             $table->string('no_surat');
             $table->dateTime('tgl_surat');
+            $table->date('tgl_kegiatan')->nullable(); 
             $table->date('tgl_diterima');
             $table->string('no_agenda');
             $table->enum('sifat_surat', ['Sangat Segera', 'Segera', 'Rahasia']);
             $table->string('surat_dari');
             $table->text('perihal');
             $table->string('file_pdf')->nullable();
+            $table->string('file_surat')->nullable(); 
             $table->enum('status_pelaksanaan', ['belum', 'terlaksana'])->default('belum');
             
             $table->integer('bidang_id'); 

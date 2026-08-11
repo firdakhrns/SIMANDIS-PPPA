@@ -15,7 +15,6 @@
     <span class="font-bold text-navy">{{ $isEdit ? 'Edit Agenda Kegiatan' : 'Surat Undangan Masuk' }}</span>
 </div>
 
-<!-- Card Form Utama -->
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl border border-slate-100 shadow-xs">
     <div class="mb-6 border-b border-slate-100 pb-4">
         <h2 class="text-base font-bold text-navy">{{ $isEdit ? 'Edit Data Surat Undangan Agenda' : 'Surat Undangan Masuk' }}</h2>
@@ -24,7 +23,6 @@
         </p>
     </div>
 
-    {{-- Pesan Alert Jika Validasi Controller Gagal --}}
     @if ($errors->any())
         <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs">
             <p class="font-bold mb-1">Terjadi kesalahan input:</p>
@@ -51,8 +49,9 @@
                 <input type="text" name="no_surat" value="{{ old('no_surat', $agenda->no_surat ?? '') }}" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">
             </div>
             <div>
-                <label class="block font-bold text-slate-700 mb-1">No Agenda</label>
-                <input type="number" name="no_agenda" value="{{ old('no_agenda', $agenda->no_agenda ?? '') }}" placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">
+                <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
+                <input type="text" name="no_agenda" value="{{ old('no_agenda', $agenda->no_agenda ?? 'AGD-' . time()) }}" required 
+                    placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy">
             </div>
         </div>
 
@@ -104,7 +103,7 @@
                         Tarik file ke sini atau klik untuk unggah
                     @endif
                 </p>
-                <p class="text-[10px] text-slate-400 mt-0.5">.pdf, .doc, .docx (Maksimal file size 50MB)</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">.pdf, .doc, .docx (Maksimal file size 5MB)</p>
             </div>
         </div>
 
