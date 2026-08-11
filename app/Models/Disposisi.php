@@ -10,7 +10,16 @@ class Disposisi extends Model
     use HasFactory;
 
     protected $fillable = [
-        'agenda_id', 'status_disposisi', 'diteruskan_kepada', 'catatan_kadis'
+        'agenda_id', 
+        'status_disposisi', 
+        'diteruskan_kepada', 
+        'catatan_kadis'
+    ];
+
+    protected $attributes = [
+        'status_disposisi' => null,
+        'diteruskan_kepada' => null,
+        'catatan_kadis' => null,
     ];
 
     public function agenda()

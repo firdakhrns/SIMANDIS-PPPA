@@ -32,13 +32,32 @@ class SuratController extends Controller
         return view('arsip-surat', compact('surats', 'totalBulanIni', 'totalSeluruh'));
     }
 
+    private function getFilePath($fileName)
+    {
+        if (!$fileName) return null;
+
+        $paths = [
+            public_path('uploads/undangan/' . $fileName),
+            storage_path('app/public/surat/' . $fileName),
+            storage_path('app/public/' . $fileName),
+        ];
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
     public function preview($id)
     {
         $surat = Surat::findOrFail($id);
-        $filePath = public_path('uploads/undangan/' . $surat->file_pdf);
+        $filePath = $this->getFilePath($surat->file_pdf);
 
-        if (!$surat->file_pdf || !file_exists($filePath)) {
-            abort(404, "File PDF tidak ditemukan di folder public/uploads/undangan/.");
+        if (!$filePath) {
+            abort(404, "File PDF tidak ditemukan di server.");
         }
 
         return response()->file($filePath, [
@@ -50,9 +69,9 @@ class SuratController extends Controller
     public function download($id)
     {
         $surat = Surat::findOrFail($id);
-        $filePath = public_path('uploads/undangan/' . $surat->file_pdf);
+        $filePath = $this->getFilePath($surat->file_pdf);
 
-        if (!$surat->file_pdf || !file_exists($filePath)) {
+        if (!$filePath) {
             return redirect()->back()->with('error', "File PDF tidak ditemukan di server.");
         }
 

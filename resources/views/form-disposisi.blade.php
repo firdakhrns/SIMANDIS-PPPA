@@ -1,9 +1,27 @@
 @extends('layouts.app')
 
 @section('content')
+
+@php
+    $surat = $agenda->surat;
+    $disposisi = $agenda->disposisi;
+
+    $suratDari = $surat->surat_dari ?? $agenda->surat_dari ?? '-';
+    $perihal = $surat->perihal ?? $agenda->perihal ?? '-';
+    $noSurat = $surat->no_surat ?? $agenda->no_surat ?? '-';
+    $tglSurat = $surat->tgl_surat ?? $agenda->tgl_surat ?? now();
+
+    $statusDisposisi = $disposisi->status_disposisi ?? 'Disposisi';
+
+    $rawTarget = $disposisi->diteruskan_kepada ?? '[]';
+    $selectedTarget = is_array($rawTarget) 
+        ? $rawTarget 
+        : json_decode($rawTarget ?? '[]', true);
+    $selectedTarget = $selectedTarget ?? [];
+@endphp
+
 <div class="max-w-2xl mx-auto bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
 
-    <!-- Header Lembar Disposisi -->
     <div class="border-b border-slate-200 pb-4 mb-6 text-center pr-8">
         <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide">Pemerintah Kota Banjarmasin</h2>
         <h3 class="text-sm font-extrabold text-navy uppercase">Dinas Pemberdayaan Perempuan dan Perlindungan Anak</h3>
@@ -14,36 +32,23 @@
         @csrf
         @method('PUT')
 
-        <!-- Ringkasan Info Agenda -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1">
-            <p><span class="font-bold text-slate-600">Surat Dari:</span> {{ $agenda->surat_dari }}</p>
-            <p><span class="font-bold text-slate-600">Perihal:</span> {{ $agenda->perihal }}</p>
-            <p><span class="font-bold text-slate-600">No / Tgl Surat:</span> {{ $agenda->no_surat }} / {{ \Carbon\Carbon::parse($agenda->tgl_surat)->locale('id')->translatedFormat('d F Y') }}</p>
+            <p><span class="font-bold text-slate-600">Surat Dari:</span> {{ $suratDari }}</p>
+            <p><span class="font-bold text-slate-600">Perihal:</span> {{ $perihal }}</p>
+            <p><span class="font-bold text-slate-600">No / Tgl Surat:</span> {{ $noSurat }} / {{ \Carbon\Carbon::parse($tglSurat)->locale('id')->translatedFormat('d F Y') }}</p>
         </div>
 
-        <!-- Status Kehadiran Kadis -->
         <div>
             <label class="block font-bold text-slate-700 mb-1">Status Kehadiran Kadis</label>
-            {{-- Tambahkan id="statusKehadiranSelect" dan event onchange --}}
             <select name="status_disposisi" id="statusKehadiranSelect" onchange="toggleDisposisiFields()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-navy">
-                <option value="Hadir" {{ old('status_disposisi', $agenda->status_disposisi) === 'Hadir' ? 'selected' : '' }}>Hadir Langsung</option>
-                <option value="Disposisi" {{ old('status_disposisi', $agenda->status_disposisi) === 'Disposisi' ? 'selected' : '' }}>Disposisi / Diwakilkan</option>
+                <option value="Hadir" {{ old('status_disposisi', $statusDisposisi) === 'Hadir' ? 'selected' : '' }}>Hadir Langsung</option>
+                <option value="Disposisi" {{ old('status_disposisi', $statusDisposisi) === 'Disposisi' ? 'selected' : '' }}>Disposisi / Diwakilkan</option>
             </select>
         </div>
 
-        <!-- Checkbox Diteruskan Kepada -->
-        @php
-            $selectedTarget = is_array($agenda->diteruskan_kepada) 
-                ? $agenda->diteruskan_kepada 
-                : json_decode($agenda->diteruskan_kepada ?? '[]', true);
-            $selectedTarget = $selectedTarget ?? [];
-        @endphp
-        
-        {{-- Tambahkan id="containerDiteruskan" di pembungkus ini --}}
         <div id="containerDiteruskan" class="transition-all duration-200">
             <label class="block font-bold text-slate-700 mb-2">Diteruskan Kepada Sdr.:</label>
             <div class="grid grid-cols-2 gap-2">
-                {{-- Tambahkan class cb-diteruskan pada masing-masing input checkbox --}}
                 <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
                     <input type="checkbox" name="diteruskan_kepada[]" value="Sekretaris" {{ in_array('Sekretaris', old('diteruskan_kepada', $selectedTarget)) ? 'checked' : '' }} class="cb-diteruskan rounded text-navy focus:ring-navy"> Sekretaris
                 </label>
@@ -62,26 +67,33 @@
             </div>
         </div>
 
-        <!-- Textarea Catatan Kadis -->
         <div>
-            <label class="block font-bold text-slate-700 mb-1">Catatan Arahan Kepala Dinas:</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+                Catatan Arahan Kepala Dinas <span class="text-rose-500">*</span>
+            </label>
+            
             <textarea 
                 name="catatan_kadis" 
-                rows="3" 
-                class="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-navy text-slate-800" 
-                placeholder="Tulis petunjuk/arahan tertulis..."
-            >{{ old('catatan_kadis', $agenda->catatan_kadis ?? '') }}</textarea>
+                rows="4" 
+                required 
+                placeholder="Masukkan petunjuk / instruksi disposisi Kepala Dinas di sini..."
+                class="w-full px-3.5 py-2.5 rounded-xl border @error('catatan_kadis') border-rose-500 focus:ring-rose-500 @else border-slate-200 focus:border-navy @enderror text-xs focus:outline-none"
+            >{{ old('catatan_kadis', $disposisi->catatan_kadis ?? '') }}</textarea>
+
+            @error('catatan_kadis')
+                <p class="text-[11px] font-bold text-rose-500 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+                </p>
+            @enderror
         </div>
 
-        <!-- Tombol Aksi -->
         <div class="pt-4 flex justify-end gap-3">
-            <a href="{{ route('mading.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-semibold hover:bg-slate-200 transition-all">Batal</a>
+            <a href="{{ route('dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-semibold hover:bg-slate-200 transition-all">Batal</a>
             <button type="submit" class="px-5 py-2.5 rounded-xl bg-navy text-white font-semibold shadow-md hover:bg-blue-900 transition-all">Simpan Disposisi</button>
         </div>
     </form>
 </div>
 
-<!-- ⚙️ SCRIPT LOGIKA ABU-ABU / DISABLED -->
 <script>
     function toggleDisposisiFields() {
         const select = document.getElementById('statusKehadiranSelect');

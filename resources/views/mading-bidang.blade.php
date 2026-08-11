@@ -22,7 +22,7 @@
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Bulan Ini</p>
             <h3 class="text-2xl font-extrabold text-[#1a2b4c]">{{ $agendas->total() }} Kegiatan</h3>
             <span class="text-[10px] font-bold text-slate-400 mt-1 block">
-                {{ $agendas->filter(fn($a) => $a->status_pelaksanaan === 'terlaksana' || $a->realisasi)->count() }} Telah Terlaksana
+                {{ $agendas->filter(fn($a) => $a->status_pelaksanaan === 'terlaksana')->count() }} Telah Terlaksana
             </span>
         </div>
         <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#1a2b4c] flex items-center justify-center text-lg">
@@ -34,7 +34,7 @@
         <div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mendatang</p>
             <h3 class="text-2xl font-extrabold text-[#1a2b4c]">
-                {{ $agendas->filter(fn($a) => $a->status_pelaksanaan !== 'terlaksana' && !$a->realisasi)->count() }} Agenda
+                {{ $agendas->filter(fn($a) => $a->status_pelaksanaan !== 'terlaksana')->count() }} Agenda
             </h3>
             <span class="text-[10px] font-bold text-slate-400 mt-1 block">Prioritas Segera</span>
         </div>
@@ -80,26 +80,30 @@
             <tbody>
                 @forelse($agendas as $index => $item)
                     @php
-                        $isTerlaksana = ($item->status_pelaksanaan === 'terlaksana' || $item->realisasi);
+                        $isTerlaksana = ($item->status_pelaksanaan === 'terlaksana');
+                        $noSurat = $item->surat->no_surat ?? $item->no_surat ?? '-';
+                        $perihal = $item->surat->perihal ?? $item->perihal ?? '-';
+                        $pengirim = $item->surat->surat_dari ?? $item->surat_dari ?? '-';
+                        $tglTampil = $item->tgl_kegiatan ?? ($item->surat->tgl_surat ?? $item->tgl_surat);
                     @endphp
                     <tr class="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                         <td class="p-3 font-bold text-slate-400">{{ sprintf('%02d', $loop->iteration + (($agendas->currentPage() - 1) * $agendas->perPage())) }}</td>
                         <td class="p-3">
-                            <p class="font-bold text-slate-800">{{ $item->no_surat }}</p>
+                            <p class="font-bold text-slate-800">{{ $noSurat }}</p>
                             <span class="text-[10px] text-slate-400">{{ $item->no_agenda ?? 'AGD-' . str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</span>
                         </td>
                         <td class="p-3">
-                            <p class="font-bold text-[#1a2b4c]">{{ $item->perihal }}</p>
+                            <p class="font-bold text-[#1a2b4c]">{{ $perihal }}</p>
                             <span class="text-[10px] text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-location-dot"></i> {{ $item->surat_dari }}
+                                <i class="fa-solid fa-location-dot"></i> {{ $pengirim }}
                             </span>
                         </td>
                         <td class="p-3">
                             <p class="font-bold text-slate-800">
-                                {{ \Carbon\Carbon::parse($item->tgl_surat)->locale('id')->translatedFormat('d M Y') }}
+                                {{ \Carbon\Carbon::parse($tglTampil)->locale('id')->translatedFormat('d M Y') }}
                             </p>
                             <span class="text-[10px] text-slate-400">
-                                {{ \Carbon\Carbon::parse($item->tgl_surat)->format('H:i') }} WITA
+                                {{ $item->jam_kegiatan ?? \Carbon\Carbon::parse($tglTampil)->format('H:i') }} WITA
                             </span>
                         </td>
                         <td class="p-3 text-center">
@@ -134,7 +138,7 @@
                                 </form>
 
                                 <button type="button" 
-                                        data-item="{{ json_encode($item) }}"
+                                        data-item="{{ json_encode($item->load('surat')) }}"
                                         onclick="handleDetailClick(this)" 
                                         class="text-xs font-bold text-[#1a2b4c] hover:underline">
                                     Detail
@@ -171,7 +175,7 @@
 
         @if(Auth::user()->role === 'admin')
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Pilih Bidang Dituju</label>
+                <label class="block font-bold text-slate-700 mb-1">Pilih Bidang Dituju <span class="text-rose-500">*</span></label>
                 <select name="bidang_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#1a2b4c]">
                     <option value="">-- Pilih Bidang --</option>
                     <option value="1" {{ (Auth::user()->bidang_id ?? request('bidang')) == 1 ? 'selected' : '' }}>Bidang Perlindungan Khusus Anak (PKA)</option>
@@ -209,12 +213,12 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block font-bold text-slate-700 mb-1">Jam Kegiatan <span class="text-rose-500">*</span></label>
-                <input type="time" name="tgl_surat_time" value="08:30" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
-            </div>
-            <div>
                 <label class="block font-bold text-slate-700 mb-1">Tanggal Pelaksanaan Kegiatan <span class="text-rose-500">*</span></label>
                 <input type="date" name="tgl_kegiatan_date" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Jam Kegiatan <span class="text-rose-500">*</span></label>
+                <input type="time" name="tgl_surat_time" value="08:30" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
         </div>
 
@@ -436,16 +440,23 @@
 
     function handleDetailClick(button) {
         const data = JSON.parse(button.getAttribute('data-item'));
-        document.getElementById('modalNoSurat').innerText = `${data.no_surat} (${data.no_agenda || '-'})`;
-        document.getElementById('modalPerihal').innerText = data.perihal;
-        document.getElementById('modalPengirim').innerText = data.surat_dari;
-        document.getElementById('modalSifat').innerText = data.sifat_surat;
-        document.getElementById('modalWaktu').innerText = `${data.tgl_surat}`;
+        const noSurat = data.surat ? data.surat.no_surat : (data.no_surat || '-');
+        const perihal = data.surat ? data.surat.perihal : (data.perihal || '-');
+        const pengirim = data.surat ? data.surat.surat_dari : (data.surat_dari || '-');
+        const sifat = data.surat ? data.surat.sifat_surat : (data.sifat_surat || '-');
+        const filePdf = data.surat ? data.surat.file_pdf : (data.file_pdf || null);
+        const tglWaktu = data.tgl_kegiatan ?? (data.surat ? data.surat.tgl_surat : data.tgl_surat);
+
+        document.getElementById('modalNoSurat').innerText = `${noSurat} (${data.no_agenda || '-'})`;
+        document.getElementById('modalPerihal').innerText = perihal;
+        document.getElementById('modalPengirim').innerText = pengirim;
+        document.getElementById('modalSifat').innerText = sifat;
+        document.getElementById('modalWaktu').innerText = `${tglWaktu}`;
         
         const fileContainer = document.getElementById('modalFileContainer');
-        if (data.file_pdf) {
+        if (filePdf) {
             fileContainer.innerHTML = `
-                <a href="/uploads/undangan/${data.file_pdf}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-[#1a2b4c] font-bold rounded-xl border border-blue-100 hover:bg-blue-100">
+                <a href="/uploads/undangan/${filePdf}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-[#1a2b4c] font-bold rounded-xl border border-blue-100 hover:bg-blue-100">
                     <i class="fa-solid fa-file-pdf"></i> Lihat File Undangan PDF
                 </a>`;
         } else {

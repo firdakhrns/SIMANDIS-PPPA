@@ -7,6 +7,15 @@
 
     <div class="flex flex-wrap items-center gap-3">
         <select onchange="location = this.value;" class="bg-white border border-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2 text-slate-700 shadow-xs focus:outline-none focus:border-navy">
+            <option value="{{ route('mading.index', request()->except('bulan')) }}">Filter Bulan</option>
+            @for($m = 1; $m <= 12; $m++)
+                <option value="{{ route('mading.index', array_merge(request()->query(), ['bulan' => $m])) }}" {{ request('bulan') == $m ? 'selected' : '' }}>
+                    {{ \Carbon\Carbon::create(null, $m, 1)->locale('id')->translatedFormat('F') }}
+                </option>
+            @endfor
+        </select>
+
+        <select onchange="location = this.value;" class="bg-white border border-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2 text-slate-700 shadow-xs focus:outline-none focus:border-navy">
             <option value="{{ route('mading.index', request()->except('bidang')) }}">Filter Bidang</option>
             <option value="{{ route('mading.index', array_merge(request()->query(), ['bidang' => 1])) }}" {{ request('bidang') == 1 ? 'selected' : '' }}>Bidang PKA</option>
             <option value="{{ route('mading.index', array_merge(request()->query(), ['bidang' => 2])) }}" {{ request('bidang') == 2 ? 'selected' : '' }}>Bidang PP</option>
@@ -26,7 +35,7 @@
             </a>
         @endif
 
-        @if(request('bidang') || request('status') || request('search'))
+        @if(request('bidang') || request('status') || request('search') || request('bulan'))
             <a href="{{ route('mading.index') }}" class="px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5" title="Reset Filter">
                 <i class="fa-solid fa-rotate-left"></i> Reset
             </a>
@@ -65,7 +74,8 @@
     <div class="space-y-3">
         @php
             $todayAgendas = $agendas->filter(function($item) {
-                return \Carbon\Carbon::parse($item->tgl_surat)->isToday();
+                $tgl = $item->tgl_kegiatan ?? ($item->surat->tgl_surat ?? $item->tgl_surat);
+                return \Carbon\Carbon::parse($tgl)->isToday();
             });
 
             $borderColors = [1 => 'border-l-purple-500', 2 => 'border-l-pink-500', 3 => 'border-l-emerald-500', 4 => 'border-l-cyan-500'];
@@ -81,13 +91,16 @@
             @php
                 $color = $borderColors[$agenda->bidang_id] ?? 'border-l-navy';
                 $badge = $bidangBadge[$agenda->bidang_id] ?? ['nama' => 'UMUM', 'bg' => 'bg-slate-100', 'text' => 'text-slate-600'];
-                $statusDisposisi = $agenda->status_disposisi;
+                $statusDisposisi = $agenda->disposisi->status_disposisi ?? $agenda->status_disposisi;
+                $tglDisplay = $agenda->tgl_kegiatan ?? ($agenda->surat->tgl_surat ?? $agenda->tgl_surat);
+                $perihalDisplay = $agenda->surat->perihal ?? $agenda->perihal;
+                $pengirimDisplay = $agenda->surat->surat_dari ?? $agenda->surat_dari;
             @endphp
             <div class="bg-white p-4 rounded-2xl border-l-4 {{ $color }} shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center gap-5">
                     <div class="text-center min-w-[65px]">
                         <span class="text-base font-extrabold text-navy block leading-tight">
-                            {{ \Carbon\Carbon::parse($agenda->tgl_surat)->format('H:i') }}
+                            {{ \Carbon\Carbon::parse($tglDisplay)->format('H:i') }}
                         </span>
                         <span class="text-[9px] font-bold text-slate-400">WITA</span>
                     </div>
@@ -96,9 +109,9 @@
                         <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded {{ $badge['bg'] }} {{ $badge['text'] }} mb-1 inline-block">
                             {{ $badge['nama'] }}
                         </span>
-                        <h4 class="font-bold text-slate-800 text-sm">{{ $agenda->perihal }}</h4>
+                        <h4 class="font-bold text-slate-800 text-sm">{{ $perihalDisplay }}</h4>
                         <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                            <i class="fa-solid fa-location-dot"></i> {{ $agenda->surat_dari }}
+                            <i class="fa-solid fa-location-dot"></i> {{ $pengirimDisplay }}
                         </p>
                     </div>
                 </div>
@@ -154,23 +167,33 @@
                             3 => 'bg-emerald-100 text-emerald-700',
                             4 => 'bg-cyan-100 text-cyan-700',
                         ];
-                        $isTerlaksana = ($item->status_pelaksanaan === 'terlaksana' || $item->realisasi);
-                        $statusDisposisi = $item->status_disposisi;
+                        $isTerlaksana = ($item->status_pelaksanaan === 'terlaksana');
+                        $statusDisposisi = $item->disposisi->status_disposisi ?? $item->status_disposisi;
+                        $hasDisposisi = !empty($statusDisposisi) && in_array($statusDisposisi, ['Hadir', 'Disposisi']);
+
+                        $tglDisplay = $item->tgl_kegiatan ?? ($item->surat->tgl_surat ?? $item->tgl_surat);
+                        $perihalDisplay = $item->surat->perihal ?? $item->perihal;
+                        $pengirimDisplay = $item->surat->surat_dari ?? $item->surat_dari;
+
+                        // Pengecekan Tanggal Expired
+                        $tglFormat = \Carbon\Carbon::parse($tglDisplay)->format('Y-m-d');
+                        $todayFormat = \Carbon\Carbon::now()->format('Y-m-d');
+                        $isExpired = $tglFormat < $todayFormat;
                     @endphp
                     <tr class="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                         <td class="p-3 font-bold text-slate-500">
                             {{ sprintf('%02d', (method_exists($agendas, 'firstItem') ? $agendas->firstItem() + $index : $index + 1)) }}
                         </td>
                         <td class="p-3">
-                            <p class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($item->tgl_surat)->locale('id')->translatedFormat('d M Y') }}</p>
-                            <span class="text-[10px] text-slate-400 font-medium">{{ \Carbon\Carbon::parse($item->tgl_surat)->format('H:i') }} WITA</span>
+                            <p class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($tglDisplay)->locale('id')->translatedFormat('d M Y') }}</p>
+                            <span class="text-[10px] text-slate-400 font-medium">{{ \Carbon\Carbon::parse($tglDisplay)->format('H:i') }} WITA</span>
                         </td>
                         <td class="p-3">
                             <p class="font-bold text-navy hover:underline cursor-pointer" data-item="{{ json_encode($item) }}" onclick="handleDetailClick(this)">
-                                {{ $item->perihal }}
+                                {{ $perihalDisplay }}
                             </p>
                             <span class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                                <i class="fa-solid fa-location-dot"></i> {{ $item->surat_dari }}
+                                <i class="fa-solid fa-location-dot"></i> {{ $pengirimDisplay }}
                             </span>
                         </td>
                         <td class="p-3 text-center">
@@ -219,14 +242,24 @@
                                         </button>
                                     </form>
                                 @elseif(Auth::user()->role === 'kadis')
-                                    {{-- HANYA KADIS YANG BISA ATUR DISPOSISI --}}
-                                    <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2.5 py-1 bg-navy text-white text-[10px] font-bold rounded-lg hover:bg-blue-900 transition-colors inline-block">
-                                        Atur Disposisi
-                                    </a>
+                                    {{-- 🔴 LOGIKA PENUTUP KADIS: JIKA EXPIRED / TERLAKSANA / SUDAH DI-DISPOSISI --}}
+                                    @if($isTerlaksana || $isExpired)
+                                        <span class="px-2.5 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-lg cursor-not-allowed inline-block" title="Kegiatan sudah terlaksana atau lewat tanggal">
+                                            <i class="fa-solid fa-lock text-[9px] mr-1"></i> Disposisi Terkunci
+                                        </span>
+                                    @elseif($hasDisposisi)
+                                        <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-lg hover:bg-emerald-100 transition-colors inline-block" title="Disposisi sudah diatur (Klik jika ingin mengubah)">
+                                            <i class="fa-solid fa-check text-[9px] mr-0.5"></i> Terdisposisi
+                                        </a>
+                                    @else
+                                        <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2.5 py-1 bg-navy text-white text-[10px] font-bold rounded-lg hover:bg-blue-900 transition-colors inline-block">
+                                            Atur Disposisi
+                                        </a>
+                                    @endif
                                 @endif
 
                                 <button type="button" 
-                                        data-item="{{ json_encode($item) }}" 
+                                        data-item="{{ json_encode($item->load('surat')) }}" 
                                         onclick="handleDetailClick(this)"
                                         class="px-2.5 py-1 bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-bold rounded-lg transition-colors inline-block">
                                     Detail
@@ -297,16 +330,23 @@
 <script>
     function handleDetailClick(button) {
         const data = JSON.parse(button.getAttribute('data-item'));
-        document.getElementById('modalNoSurat').innerText = `${data.no_surat} (${data.no_agenda || '-'})`;
-        document.getElementById('modalPerihal').innerText = data.perihal;
-        document.getElementById('modalPengirim').innerText = data.surat_dari;
-        document.getElementById('modalSifat').innerText = data.sifat_surat;
-        document.getElementById('modalWaktu').innerText = `${data.tgl_surat}`;
+        const noSurat = data.surat ? data.surat.no_surat : (data.no_surat || '-');
+        const perihal = data.surat ? data.surat.perihal : (data.perihal || '-');
+        const pengirim = data.surat ? data.surat.surat_dari : (data.surat_dari || '-');
+        const sifat = data.surat ? data.surat.sifat_surat : (data.sifat_surat || '-');
+        const filePdf = data.surat ? data.surat.file_pdf : (data.file_pdf || null);
+        const waktu = data.tgl_kegiatan ?? (data.surat ? data.surat.tgl_surat : data.tgl_surat);
+
+        document.getElementById('modalNoSurat').innerText = `${noSurat} (${data.no_agenda || '-'})`;
+        document.getElementById('modalPerihal').innerText = perihal;
+        document.getElementById('modalPengirim').innerText = pengirim;
+        document.getElementById('modalSifat').innerText = sifat;
+        document.getElementById('modalWaktu').innerText = `${waktu}`;
         
         const fileContainer = document.getElementById('modalFileContainer');
-        if (data.file_pdf) {
+        if (filePdf) {
             fileContainer.innerHTML = `
-                <a href="/uploads/undangan/${data.file_pdf}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-navy font-bold rounded-xl border border-blue-100 hover:bg-blue-100">
+                <a href="/uploads/undangan/${filePdf}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-navy font-bold rounded-xl border border-blue-100 hover:bg-blue-100">
                     <i class="fa-solid fa-file-pdf"></i> Lihat File Undangan PDF
                 </a>`;
         } else {
