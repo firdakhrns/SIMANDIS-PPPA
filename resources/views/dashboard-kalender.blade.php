@@ -115,9 +115,12 @@
                                 4 => ['nama' => 'KHP', 'bg' => 'bg-cyan-100 text-cyan-700'],
                             ][$item->bidang_id] ?? ['nama' => 'UMUM', 'bg' => 'bg-slate-100 text-slate-700'];
 
-                            $tglKegiatan = $item->tgl_kegiatan ?? ($item->surat->tgl_surat ?? $item->tgl_surat);
-                            $tglFormat = \Carbon\Carbon::parse($tglKegiatan)->format('Y-m-d');
+                            // 🔴 PERBAIKAN: Gabungkan tgl_kegiatan dan jam_kegiatan
+                            $jam = $item->jam_kegiatan ?? '08:30';
+                            $tglKegiatan = \Carbon\Carbon::parse(($item->tgl_kegiatan ?? date('Y-m-d')) . ' ' . $jam);
+                            $tglFormat = $tglKegiatan->format('Y-m-d');
                             $isExpired = $tglFormat < $todayDate;
+
                             $perihalDisplay = $item->surat->perihal ?? $item->perihal;
                             $pengirimDisplay = $item->surat->surat_dari ?? $item->surat_dari;
                             $statusDisposisi = $item->disposisi->status_disposisi ?? null;
@@ -125,8 +128,8 @@
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="p-3 font-bold text-slate-400 text-center">{{ sprintf('%02d', $loop->iteration) }}</td>
                             <td class="p-3">
-                                <p class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($tglKegiatan)->locale('id')->translatedFormat('d F Y') }}</p>
-                                <span class="text-[10px] text-slate-400 font-medium">{{ \Carbon\Carbon::parse($tglKegiatan)->format('H:i') }} WITA</span>
+                                <p class="font-bold text-slate-800">{{ $tglKegiatan->locale('id')->translatedFormat('d F Y') }}</p>
+                                <span class="text-[10px] text-slate-400 font-medium">{{ $tglKegiatan->format('H:i') }} WITA</span>
                             </td>
                             <td class="p-3 font-bold text-slate-700 truncate" title="{{ $pengirimDisplay }}">
                                 {{ $pengirimDisplay }}
@@ -336,10 +339,14 @@ function showCalendarPopup(dateFormatted, events) {
             const pengirim = item.surat ? item.surat.surat_dari : (item.surat_dari || '-');
             const noSurat = item.surat ? item.surat.no_surat : (item.no_surat || '-');
             const statusDisposisi = item.disposisi ? item.disposisi.status_disposisi : (item.status_disposisi || 'Menunggu Kadis');
+            const jamKegiatan = item.jam_kegiatan ? item.jam_kegiatan : '08:30';
 
             content.innerHTML += `
                 <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-1.5">
-                    <span class="px-2 py-0.5 bg-navy text-white font-extrabold text-[9px] rounded-md">Agenda #${idx + 1}</span>
+                    <div class="flex items-center justify-between">
+                        <span class="px-2 py-0.5 bg-navy text-white font-extrabold text-[9px] rounded-md">Agenda #${idx + 1}</span>
+                        <span class="text-[11px] font-bold text-slate-600"><i class="fa-regular fa-clock text-navy"></i> ${jamKegiatan} WITA</span>
+                    </div>
                     <h4 class="font-bold text-slate-800 text-xs">${perihal}</h4>
                     <p class="text-slate-500 text-[11px]"><b>Pengirim:</b> ${pengirim}</p>
                     <p class="text-slate-500 text-[11px]"><b>No. Surat:</b> ${noSurat}</p>

@@ -15,8 +15,8 @@ class DashboardController extends Controller
 
         $agendas = Agenda::with(['surat', 'disposisi'])
             ->whereHas('surat', function($q) use ($bulan, $tahun) {
-                $q->whereRaw("strftime('%m', tgl_surat) = ?", [sprintf('%02d', $bulan)])
-                  ->whereRaw("strftime('%Y', tgl_surat) = ?", [(string)$tahun]);
+                $q->whereMonth('tgl_surat', $bulan)
+                  ->whereYear('tgl_surat', $tahun);
             })
             ->get();
 

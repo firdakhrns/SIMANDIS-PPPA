@@ -52,4 +52,15 @@ class DisposisiController extends Controller
 
         return redirect()->route('dashboard')->with('success', 'Disposisi pimpinan berhasil disimpan.');
     }
+
+    public function cetak($id)
+    {
+        $agenda = Agenda::with(['surat', 'disposisi'])->findOrFail($id);
+
+        if (!$agenda->disposisi || empty($agenda->disposisi->status_disposisi)) {
+            return redirect()->back()->with('error', 'Lembar disposisi belum diatur oleh Kepala Dinas.');
+        }
+
+        return view('cetak.lembar-disposisi', compact('agenda'));
+    }
 }

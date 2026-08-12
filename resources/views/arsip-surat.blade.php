@@ -136,10 +136,10 @@
             </table>
         </div>
 
-        <div class="p-4 bg-slate-50/50 border-t border-slate-100 text-center">
-            <span class="text-xs font-bold text-navy">
-                Lihat Semua Surat ({{ $totalSeluruh }})
-            </span>
+        <div class="p-4 text-center border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+            <a href="{{ route('surat.index') }}" class="text-xs font-bold text-navy hover:underline inline-flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Lihat Semua Surat ({{ $totalSeluruh }})
+            </a>
         </div>
     </div>
 

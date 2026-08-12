@@ -52,13 +52,13 @@ class AgendaController extends Controller
 
         if ($bulan) {
             $query->whereHas('surat', function($q) use ($bulan) {
-                $q->whereRaw("strftime('%m', tgl_surat) = ?", [sprintf('%02d', $bulan)]);
+                $q->whereMonth('tgl_surat', $bulan);
             });
         }
 
         if ($tahun) {
             $query->whereHas('surat', function($q) use ($tahun) {
-                $q->whereRaw("strftime('%Y', tgl_surat) = ?", [(string)$tahun]);
+                $q->whereYear('tgl_surat', $tahun);
             });
         }
 
@@ -144,24 +144,6 @@ class AgendaController extends Controller
         return view('form-undangan', compact('agenda'));
     }
 
-    public function destroy($id)
-    {
-        $agenda = Agenda::with('surat')->findOrFail($id);
-
-        if ($agenda->surat && $agenda->surat->file_pdf) {
-            $filePath = public_path('uploads/undangan/' . $agenda->surat->file_pdf);
-            if (file_exists($filePath)) {
-                unlink($filePath);
-            }
-            $agenda->surat->delete();
-        } else {
-            $agenda->delete();
-        }
-
-        $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
-        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil dihapus.');
-    }
-
     public function update(Request $request, $id)
     {
         $agenda = Agenda::with('surat')->findOrFail($id);
@@ -210,5 +192,23 @@ class AgendaController extends Controller
 
         $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
         return redirect()->route($targetRoute)->with('success', 'Data agenda kegiatan berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $agenda = Agenda::with('surat')->findOrFail($id);
+
+        if ($agenda->surat && $agenda->surat->file_pdf) {
+            $filePath = public_path('uploads/undangan/' . $agenda->surat->file_pdf);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            $agenda->surat->delete();
+        } else {
+            $agenda->delete();
+        }
+
+        $targetRoute = Auth::user()->role === 'admin' ? 'mading.index' : 'mading.bidang';
+        return redirect()->route($targetRoute)->with('success', 'Agenda kegiatan berhasil dihapus.');
     }
 }
