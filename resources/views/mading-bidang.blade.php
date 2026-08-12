@@ -160,6 +160,21 @@
     </div>
 </div>
 
+<!-- 🔴 PEBERITAHUAN PESAN ERROR VALIDASI -->
+@if ($errors->any())
+    <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-2xl text-rose-700 text-xs shadow-xs">
+        <div class="flex items-center gap-2 mb-1.5 font-bold text-sm">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+            <span>Gagal Menyimpan Agenda Kegiatan!</span>
+        </div>
+        <ul class="list-disc pl-5 space-y-1 font-medium">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
     <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -191,7 +206,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
-                <input type="text" name="no_surat" minlength="10" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="text" name="no_surat" value="{{ old('no_surat') }}" minlength="3" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
             <div>
                 <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
@@ -203,42 +218,42 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Tanggal Surat <span class="text-rose-500">*</span></label>
-                <input type="date" name="tgl_surat_date" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="date" name="tgl_surat_date" value="{{ old('tgl_surat_date') }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Tanggal Diterima <span class="text-rose-500">*</span></label>
-                <input type="date" name="tgl_diterima" value="{{ date('Y-m-d') }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="date" name="tgl_diterima" value="{{ old('tgl_diterima', date('Y-m-d')) }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Tanggal Pelaksanaan Kegiatan <span class="text-rose-500">*</span></label>
-                <input type="date" name="tgl_kegiatan_date" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="date" name="tgl_kegiatan_date" value="{{ old('tgl_kegiatan_date') }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Jam Kegiatan <span class="text-rose-500">*</span></label>
-                <input type="time" name="tgl_surat_time" value="08:30" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="time" name="tgl_surat_time" value="{{ old('tgl_surat_time', '08:30') }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
         </div>
 
         <div>
             <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
-            <input type="text" name="surat_dari" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            <input type="text" name="surat_dari" value="{{ old('surat_dari') }}" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
         </div>
 
         <div>
             <label class="block font-bold text-slate-700 mb-1">Sifat Surat <span class="text-rose-500">*</span></label>
             <select name="sifat_surat" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:border-[#1a2b4c]">
-                <option value="Segera">Segera</option>
-                <option value="Sangat Segera">Sangat Segera</option>
-                <option value="Rahasia">Rahasia</option>
+                <option value="Segera" {{ old('sifat_surat') == 'Segera' ? 'selected' : '' }}>Segera</option>
+                <option value="Sangat Segera" {{ old('sifat_surat') == 'Sangat Segera' ? 'selected' : '' }}>Sangat Segera</option>
+                <option value="Rahasia" {{ old('sifat_surat') == 'Rahasia' ? 'selected' : '' }}>Rahasia</option>
             </select>
         </div>
 
         <div>
             <label class="block font-bold text-slate-700 mb-1">Perihal / Nama Agenda <span class="text-rose-500">*</span></label>
-            <textarea name="perihal" rows="3" minlength="10" maxlength="100" required placeholder="Masukkan ringkasan perihal atau nama agenda kegiatan (10 - 100 karakter)..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]"></textarea>
+            <textarea name="perihal" rows="3" minlength="5" maxlength="150" required placeholder="Masukkan perihal atau nama agenda kegiatan secara jelas..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">{{ old('perihal') }}</textarea>
         </div>
 
         <div>
@@ -272,7 +287,8 @@
     </form>
 </div>
 
-<div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+<!-- MODAL DETAIL AGENDA -->
+<div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">
             <h3 class="font-bold text-[#1a2b4c] text-base">Detail Rincian Agenda</h3>
@@ -311,9 +327,52 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- MODAL KONFIRMASI HAPUS KUSTOM -->
+<div id="customDeleteModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
+        <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-800">Hapus Agenda Kegiatan?</h3>
+            <p class="text-xs text-slate-400 mt-1">Data agenda ini akan dihapus secara permanen.</p>
+        </div>
+        <div class="flex items-center gap-3 pt-2">
+            <button type="button" onclick="closeCustomDeleteModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200">
+                Batal
+            </button>
+            <button type="button" id="confirmDeleteBtn" class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl hover:bg-rose-700 shadow-xs">
+                Ya, Hapus
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL KONFIRMASI UBAH STATUS KUSTOM -->
+<div id="customStatusModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
+        <div class="w-12 h-12 bg-blue-50 text-[#1a2b4c] rounded-2xl flex items-center justify-center mx-auto text-xl">
+            <i class="fa-solid fa-circle-question"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-800">Ubah Status Agenda?</h3>
+            <p id="statusModalText" class="text-xs text-slate-500 mt-1"></p>
+        </div>
+        <div class="flex items-center gap-3 pt-2">
+            <button type="button" onclick="closeCustomStatusModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200">
+                Batal
+            </button>
+            <button type="button" id="confirmStatusBtn" class="flex-1 py-2.5 bg-[#1a2b4c] text-white font-bold text-xs rounded-xl hover:bg-blue-900 shadow-xs">
+                Ya, Ubah!
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
+    let activeDeleteId = null;
+    let activeStatusFormId = null;
+
     document.addEventListener('DOMContentLoaded', function() {
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -359,20 +418,14 @@
             const ext = file.name.split('.').pop().toLowerCase();
             
             if (!allowedExt.includes(ext)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'File Tidak Didukung',
-                    text: 'Hanya file .pdf, .doc, dan .docx yang diperbolehkan!',
-                });
+                alert('Format file tidak didukung! Hanya file .pdf, .doc, dan .docx yang diperbolehkan.');
+                fileInput.value = '';
                 return false;
             }
 
             if (file.size > 5 * 1024 * 1024) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'File Terlalu Besar',
-                    text: 'Maksimal ukuran file adalah 5MB!',
-                });
+                alert('Ukuran file terlalu besar! Maksimal ukuran file adalah 5MB.');
+                fileInput.value = '';
                 return false;
             }
 
@@ -405,37 +458,39 @@
         const currentStatus = button.getAttribute('data-status');
         const targetStatus = currentStatus === 'terlaksana' ? 'Belum Terlaksana' : 'Terlaksana';
 
-        Swal.fire({
-            title: 'Ubah Status Agenda?',
-            text: `Apakah Anda yakin ingin mengubah status agenda ini menjadi "${targetStatus}"?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1a2b4c',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Ya, Ubah!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(`status-form-${id}`).submit();
-            }
-        });
+        activeStatusFormId = `status-form-${id}`;
+        document.getElementById('statusModalText').innerText = `Apakah Anda yakin ingin mengubah status agenda ini menjadi "${targetStatus}"?`;
+        
+        document.getElementById('customStatusModal').classList.remove('hidden');
+        document.getElementById('customStatusModal').classList.add('flex');
+    }
+
+    document.getElementById('confirmStatusBtn').addEventListener('click', function() {
+        if (activeStatusFormId) {
+            document.getElementById(activeStatusFormId).submit();
+        }
+    });
+
+    function closeCustomStatusModal() {
+        document.getElementById('customStatusModal').classList.add('hidden');
+        document.getElementById('customStatusModal').classList.remove('flex');
     }
 
     function handleDeleteClick(id) {
-        Swal.fire({
-            title: 'Hapus Agenda?',
-            text: 'Data agenda ini akan dihapus secara permanen.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(`delete-form-${id}`).submit();
-            }
-        });
+        activeDeleteId = id;
+        document.getElementById('customDeleteModal').classList.remove('hidden');
+        document.getElementById('customDeleteModal').classList.add('flex');
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (activeDeleteId) {
+            document.getElementById(`delete-form-${activeDeleteId}`).submit();
+        }
+    });
+
+    function closeCustomDeleteModal() {
+        document.getElementById('customDeleteModal').classList.add('hidden');
+        document.getElementById('customDeleteModal').classList.remove('flex');
     }
 
     function handleDetailClick(button) {

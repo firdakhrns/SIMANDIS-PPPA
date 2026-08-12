@@ -79,18 +79,40 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'no_surat'          => ['required', 'string', 'min:10', 'max:50', 'regex:/^[a-zA-Z0-9\s\/\.\-]+$/'],
-            'no_agenda'         => 'required|string|max:50',
-            'tgl_surat_date'    => 'required|date',
-            'tgl_surat_time'    => 'required',
-            'tgl_kegiatan_date' => 'required|date',
-            'tgl_diterima'      => 'required|date',
-            'surat_dari'        => ['required', 'string', 'max:255', 'regex:/^(?=.*[a-zA-Z])[a-zA-Z0-9\s\.\,\-\(\)\&\']+$/'],
-            'sifat_surat'       => 'required|in:Segera,Sangat Segera,Rahasia',
-            'perihal'           => ['required', 'string', 'min:10', 'max:100', 'regex:/^[a-zA-Z0-9\s\.\,\-\/\(\)\?\"\'\:\;]+$/'],
-            'bidang_id'         => 'required|integer|in:1,2,3,4',
-            'file_pdf'          => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-        ]);
+        'no_surat' => [
+            'required', 'string', 'min:3', 'max:50',
+            'regex:/^(?=.*[a-zA-Z0-9])(?!.*[\_\-\/\.]{3,})[a-zA-Z0-9\s\/\.\-]+$/'
+        ],
+        'no_agenda'         => 'required|string|max:50',
+        'tgl_surat_date'    => 'required|date',
+        'tgl_surat_time'    => 'required',
+        'tgl_kegiatan_date' => 'required|date',
+        'tgl_diterima'      => 'required|date',
+        'surat_dari' => [
+            'required', 'string', 'min:3', 'max:255',
+            'regex:/^(?=.*[a-zA-Z])(?!.*[\_\-\.\,]{2,})[a-zA-Z0-9\s\.\,\-\(\)\&\']+$/'
+        ],
+        'sifat_surat'       => 'required|in:Segera,Sangat Segera,Rahasia',
+        'perihal' => [
+            'required', 'string', 'min:5', 'max:150',
+            'regex:/^(?=.*[a-zA-Z])(?!.*[\_\-\.\,\?\!\:\;\/]{2,})[a-zA-Z0-9\s\.\,\-\/\(\)\?\"\'\:\;]+$/'
+        ],
+        'bidang_id'         => 'required|integer|in:1,2,3,4',
+        'file_pdf'          => 'required|file|mimes:pdf,doc,docx|max:5120',
+    ], [
+        'no_surat.required'     => 'Nomor surat wajib diisi.',
+        'no_surat.min'          => 'Nomor surat minimal 3 karakter.',
+        'no_surat.regex'        => 'Format nomor surat tidak valid atau mengandung simbol beruntun.',
+        'surat_dari.required'   => 'Pengirim / Surat Dari wajib diisi.',
+        'surat_dari.min'        => 'Nama pengirim minimal 3 karakter.',
+        'surat_dari.regex'      => 'Pengirim wajib mengandung kombinasi huruf (tidak boleh hanya simbol atau strip beruntun seperti --).',
+        'perihal.required'      => 'Perihal / Nama Agenda wajib diisi.',
+        'perihal.min'           => 'Perihal / Nama Agenda minimal 5 karakter.',
+        'perihal.regex'         => 'Perihal / Nama Agenda wajib memuat kata/kalimat yang jelas (tidak boleh berupa simbol beruntun seperti ___, ..., atau ---).',
+        'file_pdf.required'     => 'File surat undangan (PDF/Word) wajib diunggah!',
+        'file_pdf.max'          => 'Ukuran file surat undangan maksimal adalah 5 MB!',
+        'file_pdf.mimes'        => 'Format file harus berupa PDF, DOC, atau DOCX.',
+    ]);
 
         DB::transaction(function () use ($request) {
             $fileName = null;
@@ -149,22 +171,48 @@ class AgendaController extends Controller
         $agenda = Agenda::with('surat')->findOrFail($id);
 
         $request->validate([
-            'no_surat'          => ['required', 'string', 'min:10', 'max:50'],
+            'no_surat' => [
+                'required', 'string', 'min:3', 'max:50',
+                'regex:/^(?=.*[a-zA-Z0-9])(?!.*[\_\-\/\.]{3,})[a-zA-Z0-9\s\/\.\-]+$/'
+            ],
             'no_agenda'         => 'required|string|max:50',
             'tgl_surat_date'    => 'required|date',
             'tgl_surat_time'    => 'required',
             'tgl_kegiatan_date' => 'required|date',
             'tgl_diterima'      => 'required|date',
-            'surat_dari'        => 'required|string|max:255',
+            'surat_dari' => [
+                'required', 'string', 'min:3', 'max:255',
+                'regex:/^(?=.*[a-zA-Z])(?!.*[\_\-\.\,]{2,})[a-zA-Z0-9\s\.\,\-\(\)\&\']+$/'
+            ],
             'sifat_surat'       => 'required|in:Segera,Sangat Segera,Rahasia',
-            'perihal'           => 'required|string|min:10|max:100',
-            'bidang_id'         => 'required|integer',
+            'perihal' => [
+                'required', 'string', 'min:5', 'max:150',
+                'regex:/^(?=.*[a-zA-Z])(?!.*[\_\-\.\,\?\!\:\;\/]{2,})[a-zA-Z0-9\s\.\,\-\/\(\)\?\"\'\:\;]+$/'
+            ],
+            'bidang_id'         => 'required|integer|in:1,2,3,4',
             'file_pdf'          => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+        ], [
+            'no_surat.required'     => 'Nomor surat wajib diisi.',
+            'no_surat.min'          => 'Nomor surat minimal 3 karakter.',
+            'no_surat.regex'        => 'Format nomor surat tidak valid atau mengandung simbol beruntun.',
+            'surat_dari.required'   => 'Pengirim / Surat Dari wajib diisi.',
+            'surat_dari.min'        => 'Nama pengirim minimal 3 karakter.',
+            'surat_dari.regex'      => 'Pengirim wajib mengandung kombinasi huruf (tidak boleh hanya simbol atau strip beruntun seperti --).',
+            'perihal.required'      => 'Perihal / Nama Agenda wajib diisi.',
+            'perihal.min'           => 'Perihal / Nama Agenda minimal 5 karakter.',
+            'perihal.regex'         => 'Perihal / Nama Agenda wajib memuat kata/kalimat yang jelas (tidak boleh berupa simbol beruntun seperti ___, ..., atau ---).',
+            'file_pdf.required'     => 'File surat undangan (PDF/Word) wajib diunggah!',
+            'file_pdf.max'          => 'Ukuran file surat undangan maksimal adalah 5 MB!',
+            'file_pdf.mimes'        => 'Format file harus berupa PDF, DOC, atau DOCX.',
         ]);
 
         DB::transaction(function () use ($request, $agenda) {
             $fileName = $agenda->surat->file_pdf ?? null;
             if ($request->hasFile('file_pdf')) {
+                // Hapus file lama jika ada
+                if ($fileName && file_exists(public_path('uploads/undangan/' . $fileName))) {
+                    unlink(public_path('uploads/undangan/' . $fileName));
+                }
                 $file = $request->file('file_pdf');
                 $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-]/', '_', $request->no_surat) . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/undangan'), $fileName);

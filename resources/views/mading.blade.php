@@ -204,6 +204,7 @@
                     </span>
                 </div>
 
+                <!-- 🔴 STATUS KEHADIRAN / DISPOSISI KADIS (DISERAGAMKAN) -->
                 <div class="w-32 text-center shrink-0">
                     @if($statusDisposisi === 'Hadir')
                         <span class="px-2.5 py-1 bg-blue-50 text-navy font-bold text-[10px] rounded-full inline-block border border-blue-100">
@@ -213,13 +214,13 @@
                         <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 font-bold text-[10px] rounded-full inline-block border border-emerald-100">
                             Disposisi
                         </span>
-                    @elseif($isExpired)
+                    @elseif($isTerlaksana || $isExpired)
                         <span class="px-2.5 py-1 bg-rose-50 text-rose-600 font-bold text-[10px] rounded-full inline-block border border-rose-100">
                             Terlewat / Expired
                         </span>
                     @else
-                        <span class="px-2.5 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-full inline-block border border-slate-200">
-                            Belum Diatur
+                        <span class="px-2.5 py-1 bg-amber-100 text-amber-700 font-bold text-[10px] rounded-full inline-block">
+                            Menunggu Kadis
                         </span>
                     @endif
                 </div>
@@ -242,13 +243,10 @@
                             <i class="fa-solid fa-pen text-xs"></i>
                         </a>
 
-                        <form action="{{ route('agenda.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="p-1 text-slate-400 hover:text-rose-600 transition-colors" title="Hapus Agenda">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
-                        </form>
+                        <!-- 🔴 PANGGIL MODAL HAPUS KUSTOM -->
+                        <button type="button" onclick="confirmDelete('{{ route('agenda.destroy', $item->id) }}')" class="p-1 text-slate-400 hover:text-rose-600 transition-colors" title="Hapus Agenda">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
 
                         @if($hasDisposisi)
                             <a href="{{ route('disposisi.cetak', $item->id) }}" target="_blank" class="px-2 py-0.5 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1" title="Cetak PDF">
@@ -300,6 +298,7 @@
     @endif
 </div>
 
+<!-- MODAL DETAIL AGENDA -->
 <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -339,6 +338,31 @@
     </div>
 </div>
 
+<!-- 🔴 MODAL KONFIRMASI HAPUS KUSTOM -->
+<div id="deleteModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
+        <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-800">Hapus Agenda Kegiatan?</h3>
+            <p class="text-xs text-slate-400 mt-1">Data yang dihapus tidak dapat dikembalikan lagi.</p>
+        </div>
+        <form id="deleteForm" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <div class="flex items-center gap-3 pt-2">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl hover:bg-rose-700 shadow-xs">
+                    Ya, Hapus
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function handleDetailClick(button) {
         const data = JSON.parse(button.getAttribute('data-item'));
@@ -372,6 +396,17 @@
     function closeDetailModal() {
         document.getElementById('detailModal').classList.add('hidden');
         document.getElementById('detailModal').classList.remove('flex');
+    }
+
+    function confirmDelete(url) {
+        document.getElementById('deleteForm').action = url;
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteModal').classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.getElementById('deleteModal').classList.remove('flex');
     }
 </script>
 

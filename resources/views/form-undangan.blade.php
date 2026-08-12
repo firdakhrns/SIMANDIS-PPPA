@@ -6,7 +6,6 @@
     $isEdit = isset($agenda);
     $actionUrl = $isEdit ? route('agenda.update', $agenda->id) : route('agenda.store');
     
-    // Ambil data dari relasi surat & agenda
     $surat = $agenda->surat ?? null;
     $noSurat = old('no_surat', $surat->no_surat ?? '');
     $noAgenda = old('no_agenda', $agenda->no_agenda ?? 'AGD-' . time());
@@ -21,6 +20,17 @@
     $bidangId = old('bidang_id', $agenda->bidang_id ?? request('bidang', 1));
 @endphp
 
+@if ($errors->any())
+    <div class="mb-4 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl text-rose-700 text-xs">
+        <p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Terjadi kesalahan input:</p>
+        <ul class="list-disc pl-4 space-y-1 font-medium">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
     <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <div>
@@ -31,9 +41,6 @@
                 {{ $isEdit ? 'Perbarui data agenda kegiatan yang sudah terdaftar.' : 'Isi formulir untuk menambahkan jadwal agenda baru.' }}
             </p>
         </div>
-        <a href="{{ url()->previous() }}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
-        </a>
     </div>
 
     <form method="POST" action="{{ $actionUrl }}" enctype="multipart/form-data" class="space-y-4 text-xs">
@@ -60,7 +67,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
-                <input type="text" name="no_surat" value="{{ $noSurat }}" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                <input type="text" name="no_surat" value="{{ $noSurat }}" minlength="3" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
             <div>
                 <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
@@ -92,7 +99,7 @@
 
         <div>
             <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
-            <input type="text" name="surat_dari" value="{{ $suratDari }}" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            <input type="text" name="surat_dari" value="{{ $suratDari }}" minlength="3" maxlength="255" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
         </div>
 
         <div>
@@ -106,7 +113,7 @@
 
         <div>
             <label class="block font-bold text-slate-700 mb-1">Perihal / Nama Agenda <span class="text-rose-500">*</span></label>
-            <textarea name="perihal" rows="3" minlength="10" maxlength="100" required placeholder="Deskripsikan inti agenda atau perihal surat di sini..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">{{ $perihal }}</textarea>
+            <textarea name="perihal" rows="3" minlength="5" maxlength="150" required placeholder="Deskripsikan inti agenda atau perihal surat di sini..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">{{ $perihal }}</textarea>
         </div>
 
         <div>
@@ -117,10 +124,13 @@
             @endif
         </div>
 
-        <div class="pt-4 flex justify-end gap-3">
-            <a href="{{ url()->previous() }}" class="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:bg-slate-50">Batal</a>
-            <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#1a2b4c] text-white font-bold shadow-md hover:bg-blue-900 transition-colors">
-                {{ $isEdit ? 'Perbarui Data Agenda' : 'Simpan Agenda' }}
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <a href="{{ Auth::user()->role === 'admin' ? route('mading.index') : route('mading.bidang') }}" 
+            class="px-5 py-2.5 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors">
+                Batal
+            </a>
+            <button type="submit" class="px-5 py-2.5 bg-[#1a2b4c] text-white font-bold text-xs rounded-xl hover:bg-blue-900 transition-colors shadow-xs">
+                {{ isset($agenda) ? 'Perbarui Data Agenda' : 'Simpan Agenda' }}
             </button>
         </div>
     </form>

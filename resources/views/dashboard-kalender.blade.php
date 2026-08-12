@@ -40,7 +40,6 @@
         </div>
     </div>
 
-    <!-- 📊 3 KARTU STATISTIK -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
             <div>
@@ -79,7 +78,6 @@
         </div>
     </div>
 
-    <!-- 📋 TABEL AGENDA MENUNGGU DISPOSISI KADIS -->
     <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -93,16 +91,16 @@
         </div>
 
         <div class="w-full overflow-x-auto">
-            <table class="w-full text-left text-xs table-fixed">
+            <table class="w-full text-left text-xs border-separate border-spacing-y-2">
                 <thead>
                     <tr class="bg-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-100">
-                        <th class="p-3 w-12 text-center">NO</th>
-                        <th class="p-3 w-32">TANGGAL & JAM</th>
-                        <th class="p-3 w-40">SURAT DARI</th>
-                        <th class="p-3">PERIHAL / AGENDA</th>
+                        <th class="p-3 w-10 text-center">NO</th>
+                        <th class="p-3 w-36">TANGGAL & JAM</th>
+                        <th class="p-3 w-44">SURAT DARI</th>
+                        <th class="p-3 w-64">PERIHAL / AGENDA</th>
                         <th class="p-3 w-36 text-center">BIDANG PENANGGUNG JAWAB</th>
                         <th class="p-3 w-36 text-center">STATUS DISPOSISI</th>
-                        <th class="p-3 w-36 text-center">AKSI</th>
+                        <th class="p-3 w-28 text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -115,7 +113,6 @@
                                 4 => ['nama' => 'KHP', 'bg' => 'bg-cyan-100 text-cyan-700'],
                             ][$item->bidang_id] ?? ['nama' => 'UMUM', 'bg' => 'bg-slate-100 text-slate-700'];
 
-                            // 🔴 PERBAIKAN: Gabungkan tgl_kegiatan dan jam_kegiatan
                             $jam = $item->jam_kegiatan ?? '08:30';
                             $tglKegiatan = \Carbon\Carbon::parse(($item->tgl_kegiatan ?? date('Y-m-d')) . ' ' . $jam);
                             $tglFormat = $tglKegiatan->format('Y-m-d');
@@ -135,7 +132,7 @@
                                 {{ $pengirimDisplay }}
                             </td>
                             <td class="p-3 font-bold text-navy">
-                                <p class="truncate max-w-md" title="{{ $perihalDisplay }}">
+                                <p class="truncate" title="{{ $perihalDisplay }}">
                                     {{ $perihalDisplay }}
                                 </p>
                             </td>
@@ -145,7 +142,7 @@
                                 </span>
                             </td>
                             <td class="p-3 text-center">
-                                @if($isExpired)
+                                @if(($item->status_pelaksanaan === 'terlaksana') || $isExpired)
                                     <span class="px-3 py-1 bg-rose-50 text-rose-600 font-bold text-[10px] rounded-full inline-block border border-rose-100">
                                         Terlewat / Expired
                                     </span>
@@ -157,8 +154,8 @@
                             </td>
                             <td class="p-3 text-center">
                                 @if(Auth::user()->role === 'kadis')
-                                    @if($isExpired)
-                                        <span class="px-3 py-1.5 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-xl inline-block cursor-not-allowed" title="Agenda sudah lewat tanggal">
+                                    @if(($item->status_pelaksanaan === 'terlaksana') || $isExpired)
+                                        <span class="px-3 py-1.5 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-xl inline-block cursor-not-allowed" title="Agenda sudah terlaksana atau lewat tanggal">
                                             <i class="fa-solid fa-lock text-[9px] mr-1"></i> Terkunci
                                         </span>
                                     @else
@@ -190,9 +187,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
-    <!-- 📅 KALENDER AGENDA BULANAN -->
     <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>

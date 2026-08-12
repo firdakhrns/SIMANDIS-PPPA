@@ -64,66 +64,64 @@
         </div>
 
         <div class="w-full overflow-x-auto">
-            <table class="w-full text-left text-xs table-fixed">
+            <table class="w-full text-left text-xs border-separate border-spacing-y-2">
                 <thead>
-                    <tr class="bg-slate-50/70 text-slate-400 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-100">
-                        <th class="p-4 w-16 text-center">NO</th>
-                        <th class="p-4 w-64">NO. SURAT & AGENDA</th>
-                        <th class="p-4 w-36">TANGGAL MASUK</th>
-                        <th class="p-4 w-52">PENGIRIM / SURAT DARI</th>
-                        <th class="p-4">FILE BERKAS</th>
-                        <th class="p-4 w-32 text-center">AKSI</th>
+                    <tr class="bg-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-100">
+                        <th class="p-3 w-10 text-center">NO</th>
+                        <th class="p-3">NOMOR SURAT & PERIHAL</th>
+                        <th class="p-3 w-1 whitespace-nowrap">TGL SURAT</th>
+                        <th class="p-3 w-1 whitespace-nowrap">TGL KEGIATAN</th>
+                        <th class="p-3 w-1 whitespace-nowrap pr-12">SURAT DARI</th>
+                        <th class="p-3 w-1 whitespace-nowrap text-center">FILE SURAT</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($surats as $index => $item)
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="p-4 font-bold text-slate-400 text-center">
-                                {{ sprintf('%02d', $surats->firstItem() + $index) }}
+                        @php
+                            $tglKegiatan = $item->agenda->tgl_kegiatan ?? null;
+                        @endphp
+                        <tr class="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                            <td class="p-3 font-bold text-slate-400 text-center">
+                                {{ sprintf('%02d', (method_exists($surats, 'firstItem') ? $surats->firstItem() + $index : $index + 1)) }}
                             </td>
-                            <td class="p-4">
-                                <p class="font-bold text-navy hover:underline cursor-pointer truncate" title="{{ $item->no_surat }}">
-                                    {{ $item->no_surat }}
-                                </p>
-                                <span class="text-[10px] text-slate-400 block truncate" title="{{ $item->perihal }}">{{ $item->perihal }}</span>
+
+                            <td class="p-3 pr-6">
+                                <div class="flex flex-col gap-0.5">
+                                    <span class="font-bold text-navy leading-tight">{{ $item->no_surat }}</span>
+                                    <span class="text-[11px] text-slate-500 font-medium leading-tight truncate max-w-sm" title="{{ $item->perihal }}">
+                                        {{ $item->perihal }}
+                                    </span>
+                                </div>
                             </td>
-                            <td class="p-4 font-medium text-slate-700">
+
+                            <td class="p-3 text-slate-700 font-semibold whitespace-nowrap pr-8">
                                 {{ \Carbon\Carbon::parse($item->tgl_surat)->locale('id')->translatedFormat('d F Y') }}
                             </td>
-                            <td class="p-4 font-bold text-slate-700 truncate" title="{{ $item->surat_dari }}">
-                                {{ $item->surat_dari }}
-                            </td>
-                            
-                            <td class="p-4">
-                                @if(!empty($item->file_pdf) || !empty($item->file_surat))
-                                    @php $fileName = $item->file_pdf ?? $item->file_surat; @endphp
-                                    <div class="inline-flex items-center gap-2 px-2.5 py-1.5 bg-rose-50 rounded-lg text-rose-600 font-bold text-xs max-w-full">
-                                        <i class="fa-solid fa-file-pdf text-sm shrink-0"></i>
-                                        <span class="truncate text-slate-700 font-medium text-[11px]" title="{{ $fileName }}">
-                                            {{ $fileName }}
-                                        </span>
-                                    </div>
+
+                            <td class="p-3 font-bold text-slate-800 whitespace-nowrap pr-8">
+                                @if($tglKegiatan)
+                                    {{ \Carbon\Carbon::parse($tglKegiatan)->locale('id')->translatedFormat('d F Y') }}
                                 @else
-                                    <span class="text-slate-300 font-bold px-2">-</span>
+                                    <span class="text-slate-400 italic font-normal">-</span>
                                 @endif
                             </td>
 
-                            <!-- AKSI PREVIEW & DOWNLOAD -->
-                            <td class="p-4 text-center">
-                                @if(!empty($item->file_pdf) || !empty($item->file_surat))
-                                    <div class="flex items-center justify-center gap-2">
-                                        <a href="{{ route('surat.preview', $item->id) }}" target="_blank" title="Lihat Surat" 
-                                           class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-navy hover:text-white text-slate-500 flex items-center justify-center transition-all">
-                                            <i class="fa-regular fa-eye text-xs"></i>
-                                        </a>
+                            <td class="p-3 font-bold text-slate-700 whitespace-nowrap pr-12">
+                                {{ $item->surat_dari }}
+                            </td>
 
-                                        <a href="{{ route('surat.download', $item->id) }}" title="Unduh Berkas" 
-                                           class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-500 flex items-center justify-center transition-all">
-                                            <i class="fa-solid fa-download text-xs"></i>
+                            <td class="p-3 text-center whitespace-nowrap">
+                                @if($item->file_pdf)
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <a href="{{ asset('uploads/undangan/' . $item->file_pdf) }}" target="_blank" class="px-2.5 py-1 bg-blue-50 text-navy font-bold text-[10px] rounded-lg hover:bg-blue-100 transition-colors inline-flex items-center gap-1" title="Lihat PDF">
+                                            <i class="fa-solid fa-file-pdf"></i> Lihat
+                                        </a>
+                                        <a href="{{ asset('uploads/undangan/' . $item->file_pdf) }}" download class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-lg hover:bg-emerald-100 transition-colors inline-flex items-center gap-1" title="Unduh File">
+                                            <i class="fa-solid fa-download"></i> Unduh
                                         </a>
                                     </div>
                                 @else
-                                    <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">Tanpa File</span>
+                                    <span class="px-2.5 py-1 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-lg">Tanpa File</span>
                                 @endif
                             </td>
                         </tr>
@@ -136,10 +134,20 @@
             </table>
         </div>
 
-        <div class="p-4 text-center border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
-            <a href="{{ route('surat.index') }}" class="text-xs font-bold text-navy hover:underline inline-flex items-center gap-2">
-                <i class="fa-solid fa-list-check"></i> Lihat Semua Surat ({{ $totalSeluruh }})
-            </a>
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex items-center justify-between">
+            @if(request('search') || request('tgl_surat'))
+                <a href="{{ route('surat.index') }}" class="text-xs font-bold text-navy hover:underline inline-flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Filter (Lihat Semua {{ $totalSeluruh }} Surat)
+                </a>
+            @else
+                <p class="text-xs text-slate-400">Menampilkan seluruh {{ $totalSeluruh }} surat masuk</p>
+            @endif
+
+            @if(method_exists($surats, 'hasPages') && $surats->hasPages())
+                <div>
+                    {{ $surats->links() }}
+                </div>
+            @endif
         </div>
     </div>
 
