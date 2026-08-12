@@ -12,6 +12,7 @@
     $suratDari = old('surat_dari', $surat->surat_dari ?? '');
     $perihal = old('perihal', $surat->perihal ?? '');
     $sifatSurat = old('sifat_surat', $surat->sifat_surat ?? 'Segera');
+    $lokasi = old('lokasi', $agenda->lokasi ?? '');
     
     $tglSuratDate = old('tgl_surat_date', $surat ? \Carbon\Carbon::parse($surat->tgl_surat)->format('Y-m-d') : date('Y-m-d'));
     $tglDiterima = old('tgl_diterima', $surat->tgl_diterima ?? date('Y-m-d'));
@@ -21,8 +22,8 @@
 @endphp
 
 @if ($errors->any())
-    <div class="mb-4 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl text-rose-700 text-xs">
-        <p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Terjadi kesalahan input:</p>
+    <div class="mb-4 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-xl text-rose-700 text-xs shadow-xs">
+        <p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Gagal Menyimpan Data Agenda:</p>
         <ul class="list-disc pl-4 space-y-1 font-medium">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -41,6 +42,9 @@
                 {{ $isEdit ? 'Perbarui data agenda kegiatan yang sudah terdaftar.' : 'Isi formulir untuk menambahkan jadwal agenda baru.' }}
             </p>
         </div>
+        <a href="{{ Auth::user()->role === 'admin' ? route('mading.index') : route('mading.bidang') }}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
+        </a>
     </div>
 
     <form method="POST" action="{{ $actionUrl }}" enctype="multipart/form-data" class="space-y-4 text-xs">
@@ -97,9 +101,15 @@
             </div>
         </div>
 
-        <div>
-            <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
-            <input type="text" name="surat_dari" value="{{ $suratDari }}" minlength="3" maxlength="255" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
+                <input type="text" name="surat_dari" value="{{ $suratDari }}" minlength="3" maxlength="255" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Tempat / Lokasi Kegiatan (Opsional)</label>
+                <input type="text" name="lokasi" value="{{ $lokasi }}" placeholder="misal: Aula Lantai 3 DPPPA" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            </div>
         </div>
 
         <div>
@@ -117,8 +127,8 @@
         </div>
 
         <div>
-            <label class="block font-bold text-slate-700 mb-1">File Surat Undangan (PDF / Word)</label>
-            <input type="file" name="file_pdf" accept=".pdf,.doc,.docx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none">
+            <label class="block font-bold text-slate-700 mb-1">File Surat Undangan (PDF / Word) {{ $isEdit ? '' : '*' }}</label>
+            <input type="file" name="file_pdf" accept=".pdf,.doc,.docx" {{ $isEdit ? '' : 'required' }} class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none">
             @if($surat && $surat->file_pdf)
                 <p class="text-[11px] text-slate-400 mt-1">File saat ini: <span class="font-bold text-[#1a2b4c]">{{ $surat->file_pdf }}</span></p>
             @endif

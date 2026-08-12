@@ -84,18 +84,19 @@
                         $noSurat = $item->surat->no_surat ?? $item->no_surat ?? '-';
                         $perihal = $item->surat->perihal ?? $item->perihal ?? '-';
                         $pengirim = $item->surat->surat_dari ?? $item->surat_dari ?? '-';
+                        $lokasi = $item->lokasi ?? $pengirim;
                         $tglTampil = $item->tgl_kegiatan ?? ($item->surat->tgl_surat ?? $item->tgl_surat);
                     @endphp
                     <tr class="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                         <td class="p-3 font-bold text-slate-400">{{ sprintf('%02d', $loop->iteration + (($agendas->currentPage() - 1) * $agendas->perPage())) }}</td>
                         <td class="p-3">
                             <p class="font-bold text-slate-800">{{ $noSurat }}</p>
-                            <span class="text-[10px] text-slate-400">{{ $item->no_agenda ?? 'AGD-' . str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</span>
+                            <span class="text-[10px] text-navy font-bold">{{ $item->no_agenda ?? 'AGD-' . str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</span>
                         </td>
                         <td class="p-3">
                             <p class="font-bold text-[#1a2b4c]">{{ $perihal }}</p>
                             <span class="text-[10px] text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-location-dot"></i> {{ $pengirim }}
+                                <i class="fa-solid fa-location-dot text-emerald-600"></i> {{ $lokasi }}
                             </span>
                         </td>
                         <td class="p-3">
@@ -160,7 +161,6 @@
     </div>
 </div>
 
-<!-- 🔴 PEBERITAHUAN PESAN ERROR VALIDASI -->
 @if ($errors->any())
     <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 rounded-2xl text-rose-700 text-xs shadow-xs">
         <div class="flex items-center gap-2 mb-1.5 font-bold text-sm">
@@ -204,14 +204,16 @@
         @endif
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
-                <input type="text" name="no_surat" value="{{ old('no_surat') }}" minlength="3" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
-            </div>
-            <div>
-                <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
-                <input type="text" name="no_agenda" value="{{ old('no_agenda', 'AGD-' . time()) }}" required 
-                       placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
+                    <input type="text" name="no_surat" value="{{ old('no_surat') }}" minlength="3" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
+                    <input type="text" name="no_agenda" value="{{ old('no_agenda', 'AGD-' . time()) }}" required 
+                        placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+                </div>
             </div>
         </div>
 
@@ -237,9 +239,15 @@
             </div>
         </div>
 
-        <div>
-            <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
-            <input type="text" name="surat_dari" value="{{ old('surat_dari') }}" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Surat Dari / Pengirim <span class="text-rose-500">*</span></label>
+                <input type="text" name="surat_dari" value="{{ old('surat_dari') }}" required placeholder="misal: ULM Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Tempat / Lokasi Kegiatan (Opsional)</label>
+                <input type="text" name="lokasi" value="{{ old('lokasi') }}" placeholder="misal: Aula Lantai 3 DPPPA Kota Banjarmasin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            </div>
         </div>
 
         <div>
@@ -257,9 +265,9 @@
         </div>
 
         <div>
-            <label class="block font-bold text-slate-700 mb-1">File Surat Undangan (PDF / Word)</label>
+            <label class="block font-bold text-slate-700 mb-1">File Surat Undangan (PDF / Word) <span class="text-rose-500">*</span></label>
             <div id="dropZone" class="relative border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer">
-                <input type="file" name="file_pdf" id="fileInput" accept=".pdf,.doc,.docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <input type="file" name="file_pdf" id="fileInput" accept=".pdf,.doc,.docx" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                 <div id="filePlaceholder">
                     <i class="fa-solid fa-file-pdf text-3xl text-[#1a2b4c] mb-2"></i>
                     <p class="font-bold text-slate-700 text-xs">Klik atau tarik file ke sini untuk mengunggah</p>
@@ -287,26 +295,33 @@
     </form>
 </div>
 
-<!-- MODAL DETAIL AGENDA -->
 <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-            <h3 class="font-bold text-[#1a2b4c] text-base">Detail Rincian Agenda</h3>
+            <h3 class="font-bold text-[#1a2b4c] text-base">Detail Rincian Agenda Kegiatan</h3>
             <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
         </div>
         
         <div class="mt-4 space-y-3 text-xs">
-            <div>
-                <span class="text-slate-400 block font-semibold">Nomor Surat & Agenda:</span>
-                <p id="modalNoSurat" class="font-bold text-slate-800"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <span class="text-slate-400 block font-semibold">Nomor Surat:</span>
+                    <p id="modalNoSurat" class="font-bold text-slate-800"></p>
+                </div>
+                <div>
+                    <span class="text-slate-400 block font-semibold">Nomor Agenda:</span>
+                    <p id="modalNoAgenda" class="font-bold text-[#1a2b4c]"></p>
+                </div>
             </div>
+
             <div>
                 <span class="text-slate-400 block font-semibold">Perihal / Nama Agenda:</span>
                 <p id="modalPerihal" class="font-bold text-[#1a2b4c] text-sm"></p>
             </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <span class="text-slate-400 block font-semibold">Pengirim / Lokasi:</span>
+                    <span class="text-slate-400 block font-semibold">Pengirim / Instansi:</span>
                     <p id="modalPengirim" class="font-bold text-slate-800"></p>
                 </div>
                 <div>
@@ -314,10 +329,18 @@
                     <p id="modalSifat" class="font-bold text-slate-800"></p>
                 </div>
             </div>
-            <div>
-                <span class="text-slate-400 block font-semibold">Waktu Pelaksanaan:</span>
-                <p id="modalWaktu" class="font-bold text-slate-800"></p>
+
+            <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
+                <div>
+                    <span class="text-slate-400 block font-semibold">Waktu Pelaksanaan:</span>
+                    <p id="modalWaktu" class="font-bold text-slate-800"></p>
+                </div>
+                <div>
+                    <span class="text-slate-400 block font-semibold">Tempat / Lokasi Kegiatan:</span>
+                    <p id="modalLokasi" class="font-bold text-emerald-700"></p>
+                </div>
             </div>
+
             <div id="modalFileContainer" class="pt-2"></div>
         </div>
 
@@ -327,7 +350,6 @@
     </div>
 </div>
 
-<!-- MODAL KONFIRMASI HAPUS KUSTOM -->
 <div id="customDeleteModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
         <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -348,7 +370,6 @@
     </div>
 </div>
 
-<!-- MODAL KONFIRMASI UBAH STATUS KUSTOM -->
 <div id="customStatusModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
         <div class="w-12 h-12 bg-blue-50 text-[#1a2b4c] rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -500,13 +521,17 @@
         const pengirim = data.surat ? data.surat.surat_dari : (data.surat_dari || '-');
         const sifat = data.surat ? data.surat.sifat_surat : (data.sifat_surat || '-');
         const filePdf = data.surat ? data.surat.file_pdf : (data.file_pdf || null);
-        const tglWaktu = data.tgl_kegiatan ?? (data.surat ? data.surat.tgl_surat : data.tgl_surat);
+        const tgl = data.tgl_kegiatan ?? (data.surat ? data.surat.tgl_surat : data.tgl_surat);
+        const jam = data.jam_kegiatan ?? '08:30';
+        const lokasi = data.lokasi ? data.lokasi : 'Lokasi disesuaikan instansi pengirim (' + pengirim + ')';
 
-        document.getElementById('modalNoSurat').innerText = `${noSurat} (${data.no_agenda || '-'})`;
+        document.getElementById('modalNoSurat').innerText = noSurat;
+        document.getElementById('modalNoAgenda').innerText = data.no_agenda || '-';
         document.getElementById('modalPerihal').innerText = perihal;
         document.getElementById('modalPengirim').innerText = pengirim;
         document.getElementById('modalSifat').innerText = sifat;
-        document.getElementById('modalWaktu').innerText = `${tglWaktu}`;
+        document.getElementById('modalWaktu').innerText = `${tgl} | Pukul ${jam} WITA`;
+        document.getElementById('modalLokasi').innerText = lokasi;
         
         const fileContainer = document.getElementById('modalFileContainer');
         if (filePdf) {

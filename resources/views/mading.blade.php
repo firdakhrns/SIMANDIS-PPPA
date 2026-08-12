@@ -96,6 +96,7 @@
                 $tglDisplay = \Carbon\Carbon::parse(($agenda->tgl_kegiatan ?? date('Y-m-d')) . ' ' . $jam);
                 $perihalDisplay = $agenda->surat->perihal ?? $agenda->perihal;
                 $pengirimDisplay = $agenda->surat->surat_dari ?? $agenda->surat_dari;
+                $lokasiDisplay = $agenda->lokasi ?? $pengirimDisplay;
             @endphp
             <div class="bg-white p-4 rounded-2xl border-l-4 {{ $color }} shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center gap-5">
@@ -112,7 +113,7 @@
                         </span>
                         <h4 class="font-bold text-slate-800 text-sm">{{ $perihalDisplay }}</h4>
                         <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                            <i class="fa-solid fa-location-dot"></i> {{ $pengirimDisplay }}
+                            <i class="fa-solid fa-location-dot text-emerald-600"></i> {{ $lokasiDisplay }}
                         </p>
                     </div>
                 </div>
@@ -167,12 +168,13 @@
                 ];
                 $isTerlaksana = ($item->status_pelaksanaan === 'terlaksana');
                 $statusDisposisi = $item->disposisi->status_disposisi ?? $item->status_disposisi ?? null;
-                $hasDisposisi = !empty($statusDisposisi) && in_array(trim($statusDisposisi), ['Hadir', 'Disposisi']);
+                $hasDisposisi = !empty($statusDisposisi) && trim($statusDisposisi) === 'Disposisi';
 
                 $jam = $item->jam_kegiatan ?? '08:30';
                 $tglDisplay = \Carbon\Carbon::parse(($item->tgl_kegiatan ?? date('Y-m-d')) . ' ' . $jam);
                 $perihalDisplay = $item->surat->perihal ?? $item->perihal;
                 $pengirimDisplay = $item->surat->surat_dari ?? $item->surat_dari;
+                $lokasiDisplay = $item->lokasi ?? $pengirimDisplay;
 
                 $tglFormat = \Carbon\Carbon::parse($tglDisplay)->format('Y-m-d');
                 $todayFormat = \Carbon\Carbon::now()->format('Y-m-d');
@@ -190,11 +192,11 @@
                 </div>
 
                 <div class="flex-1 min-w-0 pr-2">
-                    <p class="font-bold text-navy hover:underline cursor-pointer leading-snug truncate" data-item="{{ json_encode($item) }}" onclick="handleDetailClick(this)">
+                    <p class="font-bold text-navy hover:underline cursor-pointer leading-snug truncate" data-item="{{ json_encode($item->load('surat')) }}" onclick="handleDetailClick(this)">
                         {{ $perihalDisplay }}
                     </p>
                     <span class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 truncate">
-                        <i class="fa-solid fa-location-dot text-slate-300"></i> {{ $pengirimDisplay }}
+                        <i class="fa-solid fa-location-dot text-emerald-600"></i> {{ $lokasiDisplay }}
                     </span>
                 </div>
 
@@ -204,7 +206,6 @@
                     </span>
                 </div>
 
-                <!-- 🔴 STATUS KEHADIRAN / DISPOSISI KADIS (DISERAGAMKAN) -->
                 <div class="w-32 text-center shrink-0">
                     @if($statusDisposisi === 'Hadir')
                         <span class="px-2.5 py-1 bg-blue-50 text-navy font-bold text-[10px] rounded-full inline-block border border-blue-100">
@@ -243,7 +244,6 @@
                             <i class="fa-solid fa-pen text-xs"></i>
                         </a>
 
-                        <!-- 🔴 PANGGIL MODAL HAPUS KUSTOM -->
                         <button type="button" onclick="confirmDelete('{{ route('agenda.destroy', $item->id) }}')" class="p-1 text-slate-400 hover:text-rose-600 transition-colors" title="Hapus Agenda">
                             <i class="fa-solid fa-trash text-xs"></i>
                         </button>
@@ -298,26 +298,33 @@
     @endif
 </div>
 
-<!-- MODAL DETAIL AGENDA -->
 <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl relative">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-            <h3 class="font-bold text-navy text-base">Detail Rincian Agenda</h3>
+            <h3 class="font-bold text-navy text-base">Detail Rincian Agenda Kegiatan</h3>
             <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
         </div>
         
         <div class="mt-4 space-y-3 text-xs">
-            <div>
-                <span class="text-slate-400 block font-semibold">Nomor Surat & Agenda:</span>
-                <p id="modalNoSurat" class="font-bold text-slate-800"></p>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <span class="text-slate-400 block font-semibold">Nomor Surat:</span>
+                    <p id="modalNoSurat" class="font-bold text-slate-800"></p>
+                </div>
+                <div>
+                    <span class="text-slate-400 block font-semibold">Nomor Agenda:</span>
+                    <p id="modalNoAgenda" class="font-bold text-navy"></p>
+                </div>
             </div>
+
             <div>
                 <span class="text-slate-400 block font-semibold">Perihal / Nama Agenda:</span>
                 <p id="modalPerihal" class="font-bold text-navy text-sm"></p>
             </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <span class="text-slate-400 block font-semibold">Pengirim / Lokasi:</span>
+                    <span class="text-slate-400 block font-semibold">Pengirim / Instansi:</span>
                     <p id="modalPengirim" class="font-bold text-slate-800"></p>
                 </div>
                 <div>
@@ -325,10 +332,18 @@
                     <p id="modalSifat" class="font-bold text-slate-800"></p>
                 </div>
             </div>
-            <div>
-                <span class="text-slate-400 block font-semibold">Waktu Pelaksanaan:</span>
-                <p id="modalWaktu" class="font-bold text-slate-800"></p>
+
+            <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
+                <div>
+                    <span class="text-slate-400 block font-semibold">Waktu Pelaksanaan:</span>
+                    <p id="modalWaktu" class="font-bold text-slate-800"></p>
+                </div>
+                <div>
+                    <span class="text-slate-400 block font-semibold">Tempat / Lokasi Kegiatan:</span>
+                    <p id="modalLokasi" class="font-bold text-emerald-700"></p>
+                </div>
             </div>
+
             <div id="modalFileContainer" class="pt-2"></div>
         </div>
 
@@ -338,7 +353,6 @@
     </div>
 </div>
 
-<!-- 🔴 MODAL KONFIRMASI HAPUS KUSTOM -->
 <div id="deleteModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
         <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
@@ -371,13 +385,17 @@
         const pengirim = data.surat ? data.surat.surat_dari : (data.surat_dari || '-');
         const sifat = data.surat ? data.surat.sifat_surat : (data.sifat_surat || '-');
         const filePdf = data.surat ? data.surat.file_pdf : (data.file_pdf || null);
-        const waktu = data.tgl_kegiatan ?? (data.surat ? data.surat.tgl_surat : data.tgl_surat);
+        const tgl = data.tgl_kegiatan ?? (data.surat ? data.surat.tgl_surat : data.tgl_surat);
+        const jam = data.jam_kegiatan ?? '08:30';
+        const lokasi = data.lokasi ? data.lokasi : 'Lokasi disesuaikan instansi pengirim (' + pengirim + ')';
 
-        document.getElementById('modalNoSurat').innerText = `${noSurat} (${data.no_agenda || '-'})`;
+        document.getElementById('modalNoSurat').innerText = noSurat;
+        document.getElementById('modalNoAgenda').innerText = data.no_agenda || '-';
         document.getElementById('modalPerihal').innerText = perihal;
         document.getElementById('modalPengirim').innerText = pengirim;
         document.getElementById('modalSifat').innerText = sifat;
-        document.getElementById('modalWaktu').innerText = `${waktu}`;
+        document.getElementById('modalWaktu').innerText = `${tgl} | Pukul ${jam} WITA`;
+        document.getElementById('modalLokasi').innerText = lokasi;
         
         const fileContainer = document.getElementById('modalFileContainer');
         if (filePdf) {

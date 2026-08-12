@@ -187,6 +187,7 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
     <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -261,7 +262,7 @@
                                         $isToday = \Carbon\Carbon::today()->format('Y-m-d') === $dateString;
                                     @endphp
 
-                                    <td onclick="showCalendarPopup('{{ \Carbon\Carbon::create($tahun, $bulan, $currentDay)->locale('id')->translatedFormat('d F Y') }}', {{ json_encode($eventsToday->values()) }})" 
+                                    <td onclick="showCalendarPopup('{{ \Carbon\Carbon::create($tahun, $bulan, $currentDay)->locale('id')->translatedFormat('d F Y') }}', {{ json_encode($eventsToday->values()->load('surat')) }})" 
                                         class="p-2 border-r border-slate-200 h-24 align-top transition-colors cursor-pointer relative hover:bg-blue-50/80 {{ $isToday ? 'bg-blue-100/50' : '' }}">
                                         
                                         <span class="text-sm font-black block mb-1.5 {{ $col === 0 ? 'text-rose-500' : 'text-slate-800' }}">
@@ -335,6 +336,7 @@ function showCalendarPopup(dateFormatted, events) {
             const noSurat = item.surat ? item.surat.no_surat : (item.no_surat || '-');
             const statusDisposisi = item.disposisi ? item.disposisi.status_disposisi : (item.status_disposisi || 'Menunggu Kadis');
             const jamKegiatan = item.jam_kegiatan ? item.jam_kegiatan : '08:30';
+            const lokasi = item.lokasi ? item.lokasi : ('Instansi pengirim (' + pengirim + ')');
 
             content.innerHTML += `
                 <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl space-y-1.5">
@@ -345,6 +347,8 @@ function showCalendarPopup(dateFormatted, events) {
                     <h4 class="font-bold text-slate-800 text-xs">${perihal}</h4>
                     <p class="text-slate-500 text-[11px]"><b>Pengirim:</b> ${pengirim}</p>
                     <p class="text-slate-500 text-[11px]"><b>No. Surat:</b> ${noSurat}</p>
+                    <p class="text-slate-500 text-[11px]"><b>No. Agenda:</b> <span class="font-bold text-navy">${item.no_agenda || '-'}</span></p>
+                    <p class="text-slate-500 text-[11px]"><b>Tempat / Lokasi:</b> <span class="font-bold text-emerald-700">${lokasi}</span></p>
                     <p class="text-slate-500 text-[11px]"><b>Disposisi Kadis:</b> <span class="text-navy font-bold">${statusDisposisi}</span></p>
                 </div>
             `;

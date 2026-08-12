@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('bidang_id'); 
             $table->date('tgl_kegiatan');
             $table->time('jam_kegiatan')->default('08:30:00');
+            $table->string('lokasi')->nullable();
             $table->enum('status_pelaksanaan', ['belum', 'terlaksana'])->default('belum');
             
             $table->timestamps();

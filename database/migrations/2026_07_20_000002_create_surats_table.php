@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('surats', function (Blueprint $table) {
             $table->id();
-            $table->string('no_surat')->unique();
+            $table->string('no_surat');
             $table->dateTime('tgl_surat');
             $table->date('tgl_diterima');
-            $table->enum('sifat_surat', ['Segera', 'Sangat Segera', 'Rahasia']);
+            $table->enum('sifat_surat', ['Segera', 'Sangat Segera', 'Rahasia'])->default('Segera');
             $table->string('surat_dari');
             $table->text('perihal');
             $table->string('file_pdf')->nullable();
