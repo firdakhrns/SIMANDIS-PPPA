@@ -13,6 +13,9 @@ class AgendaController extends Controller
 {
     public function index(Request $request)
     {
+        Agenda::where('tgl_kegiatan', '<', date('Y-m-d'))
+          ->where('status_pelaksanaan', 'belum')
+          ->update(['status_pelaksanaan' => 'terlaksana']);
         $role = Auth::user()->role;
         $bidangFilter = $request->query('bidang');
         $search = $request->query('search'); 
@@ -157,10 +160,15 @@ class AgendaController extends Controller
     public function toggleStatus($id)
     {
         $agenda = Agenda::findOrFail($id);
-        $agenda->status_pelaksanaan = ($agenda->status_pelaksanaan === 'terlaksana') ? 'belum' : 'terlaksana';
+
+        if ($agenda->status_pelaksanaan === 'terlaksana') {
+            return back()->with('error', 'Status agenda yang sudah terlaksana telah dikunci dan tidak dapat diubah lagi.');
+        }
+
+        $agenda->status_pelaksanaan = 'terlaksana';
         $agenda->save();
 
-        return back()->with('success', 'Status pelaksanaan berhasil diperbarui.');
+        return back()->with('success', 'Agenda kegiatan berhasil diselesaikan (Terlaksana).');
     }
 
     public function edit($id)

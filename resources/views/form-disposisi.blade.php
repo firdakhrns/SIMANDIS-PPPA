@@ -68,17 +68,12 @@
         </div>
 
         <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-                Catatan Arahan Kepala Dinas <span class="text-rose-500">*</span>
+            <label id="labelCatatan" class="block font-bold text-slate-700 mb-1">
+                Catatan Arahan Kepala Dinas <span id="bintangCatatan" class="text-rose-500">*</span>
             </label>
-            
-            <textarea 
-                name="catatan_kadis" 
-                rows="4" 
-                required 
-                placeholder="Masukkan petunjuk / instruksi disposisi Kepala Dinas di sini..."
-                class="w-full px-3.5 py-2.5 rounded-xl border @error('catatan_kadis') border-rose-500 focus:ring-rose-500 @else border-slate-200 focus:border-navy @enderror text-xs focus:outline-none"
-            >{{ old('catatan_kadis', $disposisi->catatan_kadis ?? '') }}</textarea>
+            <textarea name="catatan_kadis" id="catatanKadis" rows="4" minlength="3"
+                    placeholder="Masukkan petunjuk / instruksi disposisi Kepala Dinas di sini..." 
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-navy transition-colors">{{ old('catatan_kadis', $disposisi->catatan_kadis ?? '') }}</textarea>
 
             @error('catatan_kadis')
                 <p class="text-[11px] font-bold text-rose-500 mt-1 flex items-center gap-1">
@@ -88,7 +83,7 @@
         </div>
 
         <div class="pt-4 flex justify-end gap-3">
-            <a href="{{ route('dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-semibold hover:bg-slate-200 transition-all">Batal</a>
+            <a href="{{ url()->previous() ?? route('dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-semibold hover:bg-slate-200 transition-all">Batal</a>
             <button type="submit" class="px-5 py-2.5 rounded-xl bg-navy text-white font-semibold shadow-md hover:bg-blue-900 transition-all">Simpan Disposisi</button>
         </div>
     </form>
@@ -99,20 +94,47 @@
         const select = document.getElementById('statusKehadiranSelect');
         const container = document.getElementById('containerDiteruskan');
         const checkboxes = document.querySelectorAll('.cb-diteruskan');
+        
+        const textarea = document.getElementById('catatanKadis');
+        const labelCatatan = document.getElementById('labelCatatan');
+        const bintangCatatan = document.getElementById('bintangCatatan');
 
         if (select.value === 'Hadir') {
             container.classList.add('opacity-40', 'pointer-events-none', 'select-none');
-            
             checkboxes.forEach(cb => {
                 cb.checked = false;
                 cb.disabled = true;
             });
+
+            textarea.value = '';
+            textarea.disabled = true;
+            textarea.required = false;
+            textarea.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed', 'border-slate-200');
+            textarea.classList.remove('bg-white', 'text-slate-800', 'focus:border-navy');
+            textarea.placeholder = "Kadis hadir langsung, catatan disposisi tidak diperlukan.";
+
+            if (bintangCatatan) bintangCatatan.classList.add('hidden');
+            if (labelCatatan) {
+                labelCatatan.classList.remove('text-slate-700');
+                labelCatatan.classList.add('text-slate-400');
+            }
         } else {
             container.classList.remove('opacity-40', 'pointer-events-none', 'select-none');
-            
             checkboxes.forEach(cb => {
                 cb.disabled = false;
             });
+
+            textarea.disabled = false;
+            textarea.required = true;
+            textarea.classList.remove('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
+            textarea.classList.add('bg-white', 'text-slate-800');
+            textarea.placeholder = "Masukkan petunjuk / instruksi disposisi Kepala Dinas di sini...";
+
+            if (bintangCatatan) bintangCatatan.classList.remove('hidden');
+            if (labelCatatan) {
+                labelCatatan.classList.remove('text-slate-400');
+                labelCatatan.classList.add('text-slate-700');
+            }
         }
     }
 

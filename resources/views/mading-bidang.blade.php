@@ -108,27 +108,32 @@
                             </span>
                         </td>
                         <td class="p-3 text-center">
-                            <form action="{{ route('agenda.toggle-status', $item->id) }}" method="POST" id="status-form-{{ $item->id }}">
-                                @csrf
-                                @method('PATCH')
-                                <button type="button" 
-                                        data-id="{{ $item->id }}"
-                                        data-status="{{ $isTerlaksana ? 'terlaksana' : 'belum' }}"
-                                        onclick="handleStatusClick(this)"
-                                        class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 transition-transform active:scale-95 {{ $isTerlaksana ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200' }}">
-                                    @if($isTerlaksana)
-                                        Terlaksana <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                                    @else
+                            @if($isTerlaksana)
+                                <span class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 cursor-default select-none shadow-2xs" title="Agenda telah selesai diselenggarakan">
+                                    Terlaksana <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                </span>
+                            @else
+                                <form action="{{ route('agenda.toggle-status', $item->id) }}" method="POST" id="status-form-{{ $item->id }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="button" 
+                                            data-id="{{ $item->id }}"
+                                            data-status="belum"
+                                            onclick="handleStatusClick(this)"
+                                            class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 border border-transparent transition-all active:scale-95 shadow-2xs"
+                                            title="Klik untuk menyelesaikan agenda">
                                         Belum <i class="fa-regular fa-circle-check text-slate-400"></i>
-                                    @endif
-                                </button>
-                            </form>
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-3">
-                                <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-[#1a2b4c] text-xs" title="Edit Agenda">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
+                                @if(!$isTerlaksana)
+                                    <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-[#1a2b4c] text-xs" title="Edit Agenda">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                @endif
 
                                 <form action="{{ route('agenda.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}" class="inline">
                                     @csrf
@@ -139,7 +144,7 @@
                                 </form>
 
                                 <button type="button" 
-                                        data-item="{{ json_encode($item->load('surat')) }}"
+                                        data-item="{{ json_encode($item->load('surat')) }}" 
                                         onclick="handleDetailClick(this)" 
                                         class="text-xs font-bold text-[#1a2b4c] hover:underline">
                                     Detail
@@ -204,16 +209,14 @@
         @endif
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
-                    <input type="text" name="no_surat" value="{{ old('no_surat') }}" minlength="3" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
-                    <input type="text" name="no_agenda" value="{{ old('no_agenda', 'AGD-' . time()) }}" required 
-                        placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
-                </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Nomor Surat <span class="text-rose-500">*</span></label>
+                <input type="text" name="no_surat" value="{{ old('no_surat') }}" minlength="3" maxlength="50" required placeholder="Contoh: 001/PPPA/PKA/2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">No Agenda <span class="text-rose-500">*</span></label>
+                <input type="text" name="no_agenda" value="{{ old('no_agenda', 'AGD-' . time()) }}" required 
+                    placeholder="Masukkan No Agenda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1a2b4c]">
             </div>
         </div>
 

@@ -98,9 +98,14 @@
                                 {{ \Carbon\Carbon::parse($item->tgl_surat)->locale('id')->translatedFormat('d F Y') }}
                             </td>
 
-                            <td class="p-3 font-bold text-slate-800 whitespace-nowrap pr-8">
+                            <td class="p-3 whitespace-nowrap pr-8">
                                 @if($tglKegiatan)
-                                    {{ \Carbon\Carbon::parse($tglKegiatan)->locale('id')->translatedFormat('d F Y') }}
+                                    <p class="font-bold text-slate-800 leading-tight">
+                                        {{ \Carbon\Carbon::parse($tglKegiatan)->locale('id')->translatedFormat('d F Y') }}
+                                    </p>
+                                    <span class="text-[10px] text-slate-400 font-medium">
+                                        {{ \Carbon\Carbon::parse($item->agenda->jam_kegiatan ?? '08:30')->format('H:i') }} WITA
+                                    </span>
                                 @else
                                     <span class="text-slate-400 italic font-normal">-</span>
                                 @endif

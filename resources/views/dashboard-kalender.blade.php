@@ -165,9 +165,11 @@
                                     @endif
                                 @elseif(Auth::user()->role === 'admin')
                                     <div class="flex items-center justify-center gap-2">
-                                        <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-navy text-xs" title="Edit Agenda">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </a>
+                                        @if($item->status_pelaksanaan !== 'terlaksana')
+                                            <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-navy text-xs" title="Edit Agenda">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+                                        @endif
                                         <form action="{{ route('agenda.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus agenda ini?')">
                                             @csrf
                                             @method('DELETE')

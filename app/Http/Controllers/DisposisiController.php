@@ -29,23 +29,26 @@ class DisposisiController extends Controller
 
         $validated = $request->validate([
             'status_disposisi'  => 'required|in:Hadir,Disposisi',
-            'catatan_kadis'     => 'required|string|min:3',
+            'catatan_kadis'     => 'required_if:status_disposisi,Disposisi|nullable|string|min:3',
             'diteruskan_kepada' => 'nullable|array',
         ], [
-            'catatan_kadis.required' => 'Catatan disposisi wajib diisi! Tidak boleh dikosongkan.',
-            'catatan_kadis.min'      => 'Catatan disposisi minimal 3 karakter.',
             'status_disposisi.required' => 'Pilih status disposisi terlebih dahulu.',
+            'catatan_kadis.required_if' => 'Catatan disposisi wajib diisi jika status memilih Disposisi!',
+            'catatan_kadis.min'         => 'Catatan disposisi minimal 3 karakter.',
         ]);
 
-        $diteruskanKepada = isset($validated['diteruskan_kepada']) 
-            ? json_encode($validated['diteruskan_kepada']) 
-            : null;
+        $isHadir = $validated['status_disposisi'] === 'Hadir';
+        
+        $catatanKadis = $isHadir ? null : ($validated['catatan_kadis'] ?? null);
+        $diteruskanKepada = ($isHadir || !isset($validated['diteruskan_kepada'])) 
+            ? null 
+            : json_encode($validated['diteruskan_kepada']);
 
         Disposisi::updateOrCreate(
             ['agenda_id' => $agenda->id],
             [
                 'status_disposisi'  => $validated['status_disposisi'],
-                'catatan_kadis'     => $validated['catatan_kadis'],
+                'catatan_kadis'     => $catatanKadis,
                 'diteruskan_kepada' => $diteruskanKepada,
             ]
         );

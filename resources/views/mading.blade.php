@@ -240,16 +240,18 @@
 
                 <div class="w-32 text-center shrink-0 flex items-center justify-center gap-1.5">
                     @if(Auth::user()->role === 'admin')
+                        @if(!$isTerlaksana)
                         <a href="{{ route('agenda.edit', $item->id) }}" class="p-1 text-slate-400 hover:text-navy transition-colors" title="Edit Agenda">
                             <i class="fa-solid fa-pen text-xs"></i>
                         </a>
+                    @endif
 
                         <button type="button" onclick="confirmDelete('{{ route('agenda.destroy', $item->id) }}')" class="p-1 text-slate-400 hover:text-rose-600 transition-colors" title="Hapus Agenda">
                             <i class="fa-solid fa-trash text-xs"></i>
                         </button>
 
-                        @if($hasDisposisi)
-                            <a href="{{ route('disposisi.cetak', $item->id) }}" target="_blank" class="px-2 py-0.5 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1" title="Cetak PDF">
+                        @if($statusDisposisi === 'Disposisi')
+                            <a href="{{ route('disposisi.cetak', $item->id) }}" target="_blank" class="px-2 py-0.5 bg-rose-50 text-rose-600 ...">
                                 <i class="fa-solid fa-file-pdf"></i> PDF
                             </a>
                         @endif
@@ -259,12 +261,9 @@
                             <span class="px-2 py-0.5 bg-slate-100 text-slate-400 font-bold text-[10px] rounded-lg cursor-not-allowed inline-block" title="Terkunci">
                                 <i class="fa-solid fa-lock text-[9px] mr-1"></i> Terkunci
                             </span>
-                        @elseif($hasDisposisi)
+                        @elseif($statusDisposisi === 'Disposisi' || $statusDisposisi === 'Hadir')
                             <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-lg hover:bg-emerald-100 transition-colors inline-block" title="Ubah Disposisi">
                                 <i class="fa-solid fa-check text-[9px]"></i> Disposisi
-                            </a>
-                            <a href="{{ route('disposisi.cetak', $item->id) }}" target="_blank" class="p-1 text-rose-600 hover:text-rose-800 transition-colors" title="Cetak PDF">
-                                <i class="fa-solid fa-file-pdf text-xs"></i>
                             </a>
                         @else
                             <a href="{{ route('disposisi.edit', $item->id) }}" class="px-2.5 py-1 bg-navy text-white text-[10px] font-bold rounded-lg hover:bg-blue-900 transition-colors inline-block">
