@@ -24,12 +24,10 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            // 🌟 REDIRECT BERDASARKAN ROLE
             if (in_array($user->role, ['admin', 'kadis'])) {
                 return redirect()->route('dashboard');
             }
 
-            // Jika Staf Bidang (User biasa) - Redirect ke mading.bidang
             return redirect()->route('mading.bidang');
         }
 

@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::create([
-            'nama' => 'Drs. H. M. Ramadhan, M.Si',
+            'nama' => 'Dr. H. Muhammad Ramadhan, SE., ME., Ak.',
             'email' => 'kadis@gmail.com',
             'password' => Hash::make('kadis'),
             'role' => 'kadis',

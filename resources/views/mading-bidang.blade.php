@@ -108,40 +108,47 @@
                             </span>
                         </td>
                         <td class="p-3 text-center">
-                            @if($isTerlaksana)
-                                <span class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 cursor-default select-none shadow-2xs" title="Agenda telah selesai diselenggarakan">
-                                    Terlaksana <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                                </span>
+                            @if($item->bidang_id === Auth::user()->bidang_id)
+                                @if($isTerlaksana)
+                                    <span class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 cursor-default select-none">
+                                        Terlaksana <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                    </span>
+                                @else
+                                    <form action="{{ route('agenda.toggle-status', $item->id) }}" method="POST" id="status-form-{{ $item->id }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="button" 
+                                                data-id="{{ $item->id }}"
+                                                data-status="belum"
+                                                onclick="handleStatusClick(this)"
+                                                class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all active:scale-95">
+                                            Belum <i class="fa-regular fa-circle-check text-slate-400"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             @else
-                                <form action="{{ route('agenda.toggle-status', $item->id) }}" method="POST" id="status-form-{{ $item->id }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="button" 
-                                            data-id="{{ $item->id }}"
-                                            data-status="belum"
-                                            onclick="handleStatusClick(this)"
-                                            class="px-3 py-1 rounded-full font-bold text-[10px] inline-flex items-center gap-1 bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 border border-transparent transition-all active:scale-95 shadow-2xs"
-                                            title="Klik untuk menyelesaikan agenda">
-                                        Belum <i class="fa-regular fa-circle-check text-slate-400"></i>
-                                    </button>
-                                </form>
+                                <span class="px-2.5 py-1 bg-blue-50 text-[#1a2b4c] border border-blue-200 font-bold text-[10px] rounded-full inline-flex items-center gap-1" title="Tembusan Disposisi Kadis">
+                                    <i class="fa-solid fa-people-arrows text-navy"></i> Koordinasi
+                                </span>
                             @endif
                         </td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-3">
-                                @if(!$isTerlaksana)
-                                    <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-[#1a2b4c] text-xs" title="Edit Agenda">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </a>
-                                @endif
+                                @if($item->bidang_id === Auth::user()->bidang_id)
+                                    @if(!$isTerlaksana)
+                                        <a href="{{ route('agenda.edit', $item->id) }}" class="text-slate-400 hover:text-[#1a2b4c] text-xs" title="Edit Agenda">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                    @endif
 
-                                <form action="{{ route('agenda.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" onclick="handleDeleteClick({{ $item->id }})" class="text-slate-400 hover:text-red-500 text-xs" title="Hapus Agenda">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
+                                    <form action="{{ route('agenda.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" onclick="handleDeleteClick({{ $item->id }})" class="text-slate-400 hover:text-red-500 text-xs" title="Hapus Agenda">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
 
                                 <button type="button" 
                                         data-item="{{ json_encode($item->load('surat')) }}" 

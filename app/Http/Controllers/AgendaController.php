@@ -14,8 +14,9 @@ class AgendaController extends Controller
     public function index(Request $request)
     {
         Agenda::where('tgl_kegiatan', '<', date('Y-m-d'))
-          ->where('status_pelaksanaan', 'belum')
-          ->update(['status_pelaksanaan' => 'terlaksana']);
+            ->where('status_pelaksanaan', 'belum')
+            ->update(['status_pelaksanaan' => 'terlaksana']);
+
         $role = Auth::user()->role;
         $bidangFilter = $request->query('bidang');
         $search = $request->query('search'); 
@@ -23,13 +24,30 @@ class AgendaController extends Controller
         $bulan = $request->query('bulan');
         $tahun = $request->query('tahun');
 
+        $bidangLabels = [
+            1 => 'Kabid PKA',
+            2 => 'Kabid PP',
+            3 => 'Kabid PHA',
+            4 => 'Kabid KHP',
+        ];
+
         $query = Agenda::with(['surat', 'disposisi'])->orderBy('tgl_kegiatan', 'desc');
 
         if ($request->routeIs('mading.bidang')) {
-            if ($role === 'user') {
-                $query->where('bidang_id', Auth::user()->bidang_id);
-            } elseif ($bidangFilter) {
-                $query->where('bidang_id', $bidangFilter);
+            $targetBidangId = ($role === 'user') ? Auth::user()->bidang_id : $bidangFilter;
+
+            if ($targetBidangId) {
+                $targetLabel = $bidangLabels[$targetBidangId] ?? null;
+
+                $query->where(function ($q) use ($targetBidangId, $targetLabel) {
+                    $q->where('bidang_id', $targetBidangId);
+
+                    if ($targetLabel) {
+                        $q->orWhereHas('disposisi', function ($subQ) use ($targetLabel) {
+                            $subQ->where('diteruskan_kepada', 'LIKE', '%' . $targetLabel . '%');
+                        });
+                    }
+                });
             }
         } else {
             if ($bidangFilter) {
@@ -54,14 +72,20 @@ class AgendaController extends Controller
         }
 
         if ($bulan) {
-            $query->whereHas('surat', function($q) use ($bulan) {
-                $q->whereMonth('tgl_surat', $bulan);
+            $query->where(function($q) use ($bulan) {
+                $q->whereMonth('tgl_kegiatan', $bulan)
+                  ->orWhereHas('surat', function($sq) use ($bulan) {
+                      $sq->whereMonth('tgl_surat', $bulan);
+                  });
             });
         }
 
         if ($tahun) {
-            $query->whereHas('surat', function($q) use ($tahun) {
-                $q->whereYear('tgl_surat', $tahun);
+            $query->where(function($q) use ($tahun) {
+                $q->whereYear('tgl_kegiatan', $tahun)
+                  ->orWhereHas('surat', function($sq) use ($tahun) {
+                      $sq->whereYear('tgl_surat', $tahun);
+                  });
             });
         }
 
@@ -160,6 +184,10 @@ class AgendaController extends Controller
     public function toggleStatus($id)
     {
         $agenda = Agenda::findOrFail($id);
+
+        if (Auth::user()->role === 'user' && $agenda->bidang_id !== Auth::user()->bidang_id) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk menyelesaikan agenda bidang lain.');
+        }
 
         if ($agenda->status_pelaksanaan === 'terlaksana') {
             return back()->with('error', 'Status agenda yang sudah terlaksana telah dikunci dan tidak dapat diubah lagi.');
